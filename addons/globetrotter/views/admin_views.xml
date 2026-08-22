@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Top-level Menu -->
+    <menuitem id="menu_globetrotter_root"
+              name="GlobeTrotter"
+              web_icon="globetrotter,static/description/icon.png"
+              sequence="15"/>
+
+    <!-- Operations / Travel Desk -->
+    <menuitem id="menu_globetrotter_travel"
+              name="Travel Planning"
+              parent="menu_globetrotter_root"
+              sequence="10"/>
+
+    <menuitem id="menu_globetrotter_trips"
+              name="Trips &amp; Itineraries"
+              parent="menu_globetrotter_travel"
+              action="action_globetrotter_trips"
+              sequence="10"/>
+
+    <menuitem id="menu_globetrotter_expenses"
+              name="Trip Expenses"
+              parent="menu_globetrotter_travel"
+              action="action_globetrotter_expenses"
+              sequence="20"/>
+
+    <!-- Catalog Management -->
+    <menuitem id="menu_globetrotter_catalog"
+              name="Destinations Catalog"
+              parent="menu_globetrotter_root"
+              sequence="20"/>
+
+    <menuitem id="menu_globetrotter_cities"
+              name="Cities"
+              parent="menu_globetrotter_catalog"
+              action="action_globetrotter_cities"
+              sequence="10"/>
+
+    <menuitem id="menu_globetrotter_activities"
+              name="Master Activities"
+              parent="menu_globetrotter_catalog"
+              action="action_globetrotter_activities"
+              sequence="20"/>
+</odoo>

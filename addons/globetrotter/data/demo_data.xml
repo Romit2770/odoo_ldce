@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- =================================================== -->
+        <!-- DESTINATION CITIES                                  -->
+        <!-- =================================================== -->
+        <record id="city_mumbai" model="globetrotter.city">
+            <field name="name">Mumbai</field>
+            <field name="code">mumbai</field>
+            <field name="country">India</field>
+            <field name="region">Maharashtra</field>
+            <field name="cost_index">Balanced</field>
+            <field name="popularity">High energy port</field>
+            <field name="season">Nov – Feb</field>
+            <field name="accent">mustard</field>
+            <field name="description">Colonial stone arches, harbour ferries, bustling art quarters, and endless coastal promenades.</field>
+            <field name="latitude">18.9220</field>
+            <field name="longitude">72.8347</field>
+            <field name="status">active</field>
+        </record>
+
+        <record id="city_goa" model="globetrotter.city">
+            <field name="name">Goa</field>
+            <field name="code">goa</field>
+            <field name="country">India</field>
+            <field name="region">Goa</field>
+            <field name="cost_index">Easy on the wallet</field>
+            <field name="popularity">Coastal favourite</field>
+            <field name="season">Oct – Mar</field>
+            <field name="accent">coral</field>
+            <field name="description">Palm-fringed coves, Portuguese colonial forts, sunset shacks, and slow saltwater rhythms.</field>
+            <field name="latitude">15.2993</field>
+            <field name="longitude">74.1240</field>
+            <field name="status">active</field>
+        </record>
+
+        <record id="city_jaipur" model="globetrotter.city">
+            <field name="name">Jaipur</field>
+            <field name="code">jaipur</field>
+            <field name="country">India</field>
+            <field name="region">Rajasthan</field>
+            <field name="cost_index">Easy on the wallet</field>
+            <field name="popularity">Royal heritage</field>
+            <field name="season">Oct – Mar</field>
+            <field name="accent">coral</field>
+            <field name="description">Terracotta courtyards, astronomy monuments, hilltop fortresses, and vibrant textile bazaars.</field>
+            <field name="latitude">26.9124</field>
+            <field name="longitude">75.7873</field>
+            <field name="status">active</field>
+        </record>
+
+        <record id="city_udaipur" model="globetrotter.city">
+            <field name="name">Udaipur</field>
+            <field name="code">udaipur</field>
+            <field name="country">India</field>
+            <field name="region">Rajasthan</field>
+            <field name="cost_index">A little luxe</field>
+            <field name="popularity">Romantic lakes</field>
+            <field name="season">Sep – Mar</field>
+            <field name="accent">teal</field>
+            <field name="description">Marble palaces floating on tranquil lake waters with Aravali hill backdrops.</field>
+            <field name="latitude">24.5854</field>
+            <field name="longitude">73.7125</field>
+            <field name="status">active</field>
+        </record>
+
+        <record id="city_kerala" model="globetrotter.city">
+            <field name="name">Kerala (Kochi &amp; Alleppey)</field>
+            <field name="code">kerala</field>
+            <field name="country">India</field>
+            <field name="region">Kerala</field>
+            <field name="cost_index">Balanced</field>
+            <field name="popularity">Backwater serene</field>
+            <field name="season">Sep – Mar</field>
+            <field name="accent">teal</field>
+            <field name="description">Lush coconut groves, tranquil houseboat waterways, spice estates, and Chinese fishing nets.</field>
+            <field name="latitude">9.9312</field>
+            <field name="longitude">76.2673</field>
+            <field name="status">active</field>
+        </record>
+
+        <record id="city_manali" model="globetrotter.city">
+            <field name="name">Manali</field>
+            <field name="code">manali</field>
+            <field name="country">India</field>
+            <field name="region">Himachal Pradesh</field>
+            <field name="cost_index">Easy on the wallet</field>
+            <field name="popularity">Mountain escape</field>
+            <field name="season">Apr – Jun &amp; Dec – Feb</field>
+            <field name="accent">mustard</field>
+            <field name="description">Pine valleys, glacial river trails, hot sulphur springs, and high Himalayan pass gateways.</field>
+            <field name="latitude">32.2396</field>
+            <field name="longitude">77.1887</field>
+            <field name="status">active</field>
+        </record>
+
+        <record id="city_delhi" model="globetrotter.city">
+            <field name="name">Delhi</field>
+            <field name="code">delhi</field>
+            <field name="country">India</field>
+            <field name="region">Delhi NCR</field>
+            <field name="cost_index">Balanced</field>
+            <field name="popularity">Historic capital</field>
+            <field name="season">Oct – Mar</field>
+            <field name="accent">coral</field>
+            <field name="description">Centuries of Mughal architecture, sprawling garden tombs, and legendary street food lanes.</field>
+            <field name="latitude">28.6139</field>
+            <field name="longitude">77.2090</field>
+            <field name="status">active</field>
+        </record>
+
+        <!-- =================================================== -->
+        <!-- MASTER CATALOG ACTIVITIES                           -->
+        <!-- =================================================== -->
+        <!-- Mumbai Activities -->
+        <record id="act_mumbai_breakfast" model="globetrotter.activity">
+            <field name="name">Kala Ghoda breakfast</field>
+            <field name="city_id" ref="city_mumbai"/>
+            <field name="category">Food</field>
+            <field name="description">Start with a slow café table and the neighbourhood’s early street life.</field>
+            <field name="duration">1h</field>
+            <field name="estimated_cost">400.0</field>
+            <field name="location">Kala Ghoda</field>
+            <field name="rating">★ 4.8</field>
+            <field name="icon">Coffee</field>
+        </record>
+
+        <record id="act_mumbai_gateway" model="globetrotter.activity">
+            <field name="name">Gateway of India</field>
+            <field name="city_id" ref="city_mumbai"/>
+            <field name="category">Sightseeing</field>
+            <field name="description">A harbour-side landmark walk with a view across to the water.</field>
+            <field name="duration">1.5h</field>
+            <field name="estimated_cost">0.0</field>
+            <field name="location">Apollo Bunder</field>
+            <field name="rating">★ 4.7</field>
+            <field name="icon">Camera</field>
+        </record>
+
+        <record id="act_mumbai_marine_drive" model="globetrotter.activity">
+            <field name="name">Marine Drive sunset</field>
+            <field name="city_id" ref="city_mumbai"/>
+            <field name="category">Nature</field>
+            <field name="description">Golden-hour promenade time and a no-rush evening walk along the Queen's Necklace.</field>
+            <field name="duration">2h</field>
+            <field name="estimated_cost">0.0</field>
+            <field name="location">Marine Drive</field>
+            <field name="rating">★ 4.9</field>
+            <field name="icon">Sun</field>
+        </record>
+
+        <record id="act_mumbai_crawford" model="globetrotter.activity">
+            <field name="name">Crawford Market &amp; Street Flavours</field>
+            <field name="city_id" ref="city_mumbai"/>
+            <field name="category">Food</field>
+            <field name="description">Spices, dry fruits, fresh produce, and legendary pav bhaji tasting.</field>
+            <field name="duration">2h</field>
+            <field name="estimated_cost">600.0</field>
+            <field name="location">Fort / Marine Lines</field>
+            <field name="rating">★ 4.6</field>
+            <field name="icon">Utensils</field>
+        </record>
+
+        <!-- Goa Activities -->
+        <record id="act_goa_scenic_drive" model="globetrotter.activity">
+            <field name="name">Scenic coastal arrival drive</field>
+            <field name="city_id" ref="city_goa"/>
+            <field name="category">Adventure</field>
+            <field name="description">Settle in, pick up scooters or a cab, and catch the sea breeze.</field>
+            <field name="duration">2h</field>
+            <field name="estimated_cost">900.0</field>
+            <field name="location">North Goa Coast</field>
+            <field name="rating">★ 4.8</field>
+            <field name="icon">Compass</field>
+        </record>
+
+        <record id="act_goa_curries" model="globetrotter.activity">
+            <field name="name">Sunset shack curries</field>
+            <field name="city_id" ref="city_goa"/>
+            <field name="category">Food</field>
+            <field name="description">Fresh kokum drinks, prawn curry, and barefoot dining by the shore.</field>
+            <field name="duration">2h</field>
+            <field name="estimated_cost">1100.0</field>
+            <field name="location">Vagator</field>
+            <field name="rating">★ 4.9</field>
+            <field name="icon">Utensils</field>
+        </record>
+
+        <record id="act_goa_kayak" model="globetrotter.activity">
+            <field name="name">Morning kayak in the backwaters</field>
+            <field name="city_id" ref="city_goa"/>
+            <field name="category">Adventure</field>
+            <field name="description">Paddle through mangrove channels before the afternoon sun climbs.</field>
+            <field name="duration">2h</field>
+            <field name="estimated_cost">850.0</field>
+            <field name="location">Chapora River</field>
+            <field name="rating">★ 4.8</field>
+            <field name="icon">Waves</field>
+        </record>
+
+        <record id="act_goa_fontainhas" model="globetrotter.activity">
+            <field name="name">Fontainhas Latin Quarter walk</field>
+            <field name="city_id" ref="city_goa"/>
+            <field name="category">Culture</field>
+            <field name="description">Pastel-walled lanes, wooden balconies, and heritage bakeries.</field>
+            <field name="duration">2.5h</field>
+            <field name="estimated_cost">300.0</field>
+            <field name="location">Panaji</field>
+            <field name="rating">★ 4.9</field>
+            <field name="icon">Footprints</field>
+        </record>
+
+        <record id="act_goa_anjuna" model="globetrotter.activity">
+            <field name="name">Anjuna beach stroll</field>
+            <field name="city_id" ref="city_goa"/>
+            <field name="category">Sightseeing</field>
+            <field name="description">Flea market browsing, ocean air, and evening acoustic music.</field>
+            <field name="duration">2h</field>
+            <field name="estimated_cost">0.0</field>
+            <field name="location">Anjuna</field>
+            <field name="rating">★ 4.7</field>
+            <field name="icon">Music</field>
+        </record>
+
+        <record id="act_goa_palolem" model="globetrotter.activity">
+            <field name="name">Palolem bay relaxation</field>
+            <field name="city_id" ref="city_goa"/>
+            <field name="category">Nature</field>
+            <field name="description">A calm crescent bay ideal for slow swimming and reading in a hammock.</field>
+            <field name="duration">3h</field>
+            <field name="estimated_cost">0.0</field>
+            <field name="location">South Goa</field>
+            <field name="rating">★ 4.9</field>
+            <field name="icon">Sun</field>
+        </record>
+
+        <record id="act_goa_fort_aguada" model="globetrotter.activity">
+            <field name="name">Fort Aguada panoramic viewpoint</field>
+            <field name="city_id" ref="city_goa"/>
+            <field name="category">Sightseeing</field>
+            <field name="description">17th-century Portuguese fortress overlooking the Mandovi estuary.</field>
+            <field name="duration">2h</field>
+            <field name="estimated_cost">100.0</field>
+            <field name="location">Sinquerim</field>
+            <field name="rating">★ 4.7</field>
+            <field name="icon">Landmark</field>
+        </record>
+
+        <!-- =================================================== -->
+        <!-- DEMO TRIP: GOA ADVENTURE (5 DAYS, MUMBAI -> GOA)   -->
+        <!-- =================================================== -->
+        <record id="trip_goa_adventure" model="globetrotter.trip">
+            <field name="name">Goa Adventure</field>
+            <field name="code">goa-adventure</field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="start_date">2026-08-12</field>
+            <field name="end_date">2026-08-16</field>
+            <field name="status">Upcoming</field>
+            <field name="travel_style">Adventure</field>
+            <field name="budget">25000.0</field>
+            <field name="base_transport_cost">4500.0</field>
+            <field name="base_accommodation_cost">7000.0</field>
+            <field name="base_food_cost">3200.0</field>
+            <field name="base_misc_cost">1700.0</field>
+            <field name="description">A coastal story that begins with Mumbai’s harbour and ends with saltwater sunsets in Goa.</field>
+        </record>
+
+        <!-- Stop 1: Mumbai -->
+        <record id="stop_mumbai" model="globetrotter.trip_stop">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="city_id" ref="city_mumbai"/>
+            <field name="city">Mumbai</field>
+            <field name="country">India</field>
+            <field name="region">Maharashtra</field>
+            <field name="sequence">1</field>
+            <field name="arrival_date">2026-08-12</field>
+            <field name="departure_date">2026-08-13</field>
+            <field name="color">#FFC53D</field>
+        </record>
+
+        <!-- Stop 2: Goa -->
+        <record id="stop_goa" model="globetrotter.trip_stop">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="city_id" ref="city_goa"/>
+            <field name="city">Goa</field>
+            <field name="country">India</field>
+            <field name="region">Goa</field>
+            <field name="sequence">2</field>
+            <field name="arrival_date">2026-08-14</field>
+            <field name="departure_date">2026-08-16</field>
+            <field name="color">#FF6550</field>
+        </record>
+
+        <!-- Itinerary Day 1 (Mumbai) -->
+        <record id="day_mumbai_1" model="globetrotter.itinerary_day">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="trip_stop_id" ref="stop_mumbai"/>
+            <field name="day_number">1</field>
+            <field name="date">2026-08-12</field>
+        </record>
+
+        <!-- Day 1 Activities -->
+        <record id="act_sched_1" model="globetrotter.trip_activity">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="itinerary_day_id" ref="day_mumbai_1"/>
+            <field name="activity_id" ref="act_mumbai_breakfast"/>
+            <field name="name">Kala Ghoda breakfast</field>
+            <field name="start_time">09:00</field>
+            <field name="duration">1h</field>
+            <field name="cost">400.0</field>
+            <field name="category">Food</field>
+            <field name="location">Kala Ghoda</field>
+            <field name="description">Start with a slow café table and the neighbourhood’s early street life.</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="act_sched_2" model="globetrotter.trip_activity">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="itinerary_day_id" ref="day_mumbai_1"/>
+            <field name="activity_id" ref="act_mumbai_gateway"/>
+            <field name="name">Gateway of India</field>
+            <field name="start_time">11:00</field>
+            <field name="duration">1.5h</field>
+            <field name="cost">0.0</field>
+            <field name="category">Sightseeing</field>
+            <field name="location">Apollo Bunder</field>
+            <field name="description">A harbour-side landmark walk with a view across to the water.</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="act_sched_3" model="globetrotter.trip_activity">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="itinerary_day_id" ref="day_mumbai_1"/>
+            <field name="activity_id" ref="act_mumbai_marine_drive"/>
+            <field name="name">Marine Drive sunset</field>
+            <field name="start_time">17:00</field>
+            <field name="duration">2h</field>
+            <field name="cost">0.0</field>
+            <field name="category">Nature</field>
+            <field name="location">Marine Drive</field>
+            <field name="description">Golden-hour promenade time and a no-rush evening walk.</field>
+            <field name="sequence">3</field>
+        </record>
+
+        <!-- Itinerary Day 2 (Mumbai) -->
+        <record id="day_mumbai_2" model="globetrotter.itinerary_day">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="trip_stop_id" ref="stop_mumbai"/>
+            <field name="day_number">2</field>
+            <field name="date">2026-08-13</field>
+        </record>
+
+        <record id="act_sched_4" model="globetrotter.trip_activity">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="itinerary_day_id" ref="day_mumbai_2"/>
+            <field name="activity_id" ref="act_mumbai_crawford"/>
+            <field name="name">Crawford Market &amp; Street Flavours</field>
+            <field name="start_time">10:30</field>
+            <field name="duration">2h</field>
+            <field name="cost">600.0</field>
+            <field name="category">Food</field>
+            <field name="location">Fort / Marine Lines</field>
+            <field name="description">Spices, dry fruits, fresh produce, and legendary pav bhaji tasting.</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <!-- Itinerary Day 3 (Goa) -->
+        <record id="day_goa_3" model="globetrotter.itinerary_day">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="trip_stop_id" ref="stop_goa"/>
+            <field name="day_number">3</field>
+            <field name="date">2026-08-14</field>
+        </record>
+
+        <record id="act_sched_5" model="globetrotter.trip_activity">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="itinerary_day_id" ref="day_goa_3"/>
+            <field name="activity_id" ref="act_goa_scenic_drive"/>
+            <field name="name">Scenic coastal arrival drive</field>
+            <field name="start_time">14:00</field>
+            <field name="duration">2h</field>
+            <field name="cost">900.0</field>
+            <field name="category">Adventure</field>
+            <field name="location">North Goa Coast</field>
+            <field name="description">Settle in, pick up scooters or a cab, and catch the sea breeze.</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="act_sched_6" model="globetrotter.trip_activity">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="itinerary_day_id" ref="day_goa_3"/>
+            <field name="activity_id" ref="act_goa_curries"/>
+            <field name="name">Sunset shack curries</field>
+            <field name="start_time">18:30</field>
+            <field name="duration">2h</field>
+            <field name="cost">1100.0</field>
+            <field name="category">Food</field>
+            <field name="location">Vagator</field>
+            <field name="description">Fresh kokum drinks, prawn curry, and barefoot dining by the shore.</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <!-- Itinerary Day 4 (Goa) -->
+        <record id="day_goa_4" model="globetrotter.itinerary_day">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="trip_stop_id" ref="stop_goa"/>
+            <field name="day_number">4</field>
+            <field name="date">2026-08-15</field>
+        </record>
+
+        <record id="act_sched_7" model="globetrotter.trip_activity">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="itinerary_day_id" ref="day_goa_4"/>
+            <field name="activity_id" ref="act_goa_kayak"/>
+            <field name="name">Morning kayak in the backwaters</field>
+            <field name="start_time">07:30</field>
+            <field name="duration">2h</field>
+            <field name="cost">850.0</field>
+            <field name="category">Adventure</field>
+            <field name="location">Chapora River</field>
+            <field name="description">Paddle through mangrove channels before the afternoon sun climbs.</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="act_sched_8" model="globetrotter.trip_activity">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="itinerary_day_id" ref="day_goa_4"/>
+            <field name="activity_id" ref="act_goa_fontainhas"/>
+            <field name="name">Fontainhas Latin Quarter walk</field>
+            <field name="start_time">16:00</field>
+            <field name="duration">2.5h</field>
+            <field name="cost">300.0</field>
+            <field name="category">Culture</field>
+            <field name="location">Panaji</field>
+            <field name="description">Pastel-walled lanes, wooden balconies, and heritage bakeries.</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <!-- Itinerary Day 5 (Goa) -->
+        <record id="day_goa_5" model="globetrotter.itinerary_day">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="trip_stop_id" ref="stop_goa"/>
+            <field name="day_number">5</field>
+            <field name="date">2026-08-16</field>
+        </record>
+
+        <record id="act_sched_9" model="globetrotter.trip_activity">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="itinerary_day_id" ref="day_goa_5"/>
+            <field name="activity_id" ref="act_goa_anjuna"/>
+            <field name="name">Anjuna beach stroll</field>
+            <field name="start_time">10:00</field>
+            <field name="duration">2h</field>
+            <field name="cost">0.0</field>
+            <field name="category">Sightseeing</field>
+            <field name="location">Anjuna</field>
+            <field name="description">Flea market browsing, ocean air, and evening acoustic music.</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <!-- Demo Share -->
+        <record id="share_goa_demo" model="globetrotter.shared_trip">
+            <field name="trip_id" ref="trip_goa_adventure"/>
+            <field name="share_id">goa-pass-7x</field>
+            <field name="visibility">link</field>
+            <field name="created_by" ref="base.user_admin"/>
+        </record>
+    </data>
+</odoo>

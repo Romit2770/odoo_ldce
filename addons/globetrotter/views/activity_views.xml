@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_globetrotter_activity_tree" model="ir.ui.view">
+        <field name="name">globetrotter.activity.tree</field>
+        <field name="model">globetrotter.activity</field>
+        <field name="arch" type="xml">
+            <tree string="Master Activities">
+                <field name="name"/>
+                <field name="city_id"/>
+                <field name="category" widget="badge"/>
+                <field name="duration"/>
+                <field name="estimated_cost" widget="monetary"/>
+                <field name="location"/>
+                <field name="rating"/>
+                <field name="status" widget="badge"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_globetrotter_activity_form" model="ir.ui.view">
+        <field name="name">globetrotter.activity.form</field>
+        <field name="model">globetrotter.activity</field>
+        <field name="arch" type="xml">
+            <form string="Master Activity">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only" string="Activity Title"/>
+                        <h1><field name="name" placeholder="e.g. Scenic coastal arrival drive"/></h1>
+                    </div>
+                    <group>
+                        <group string="Classification">
+                            <field name="city_id"/>
+                            <field name="category"/>
+                            <field name="location"/>
+                            <field name="icon"/>
+                        </group>
+                        <group string="Duration &amp; Cost">
+                            <field name="duration"/>
+                            <field name="estimated_cost" widget="monetary"/>
+                            <field name="currency"/>
+                            <field name="rating"/>
+                            <field name="status"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_globetrotter_activities" model="ir.actions.act_window">
+        <field name="name">Master Activities</field>
+        <field name="res_model">globetrotter.activity</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

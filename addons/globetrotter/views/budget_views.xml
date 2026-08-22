@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Expense Tree -->
+    <record id="view_globetrotter_expense_tree" model="ir.ui.view">
+        <field name="name">globetrotter.expense.tree</field>
+        <field name="model">globetrotter.expense</field>
+        <field name="arch" type="xml">
+            <tree string="Trip Expenses">
+                <field name="date"/>
+                <field name="trip_id"/>
+                <field name="user_id"/>
+                <field name="category" widget="badge"/>
+                <field name="description"/>
+                <field name="amount" widget="monetary"/>
+                <field name="currency"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Expense Form -->
+    <record id="view_globetrotter_expense_form" model="ir.ui.view">
+        <field name="name">globetrotter.expense.form</field>
+        <field name="model">globetrotter.expense</field>
+        <field name="arch" type="xml">
+            <form string="Trip Expense">
+                <sheet>
+                    <group>
+                        <group string="Expense Detail">
+                            <field name="trip_id"/>
+                            <field name="user_id"/>
+                            <field name="category"/>
+                            <field name="description"/>
+                        </group>
+                        <group string="Financials">
+                            <field name="amount" widget="monetary"/>
+                            <field name="currency"/>
+                            <field name="date"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_globetrotter_expenses" model="ir.actions.act_window">
+        <field name="name">Expenses</field>
+        <field name="res_model">globetrotter.expense</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

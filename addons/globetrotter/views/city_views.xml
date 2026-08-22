@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_globetrotter_city_tree" model="ir.ui.view">
+        <field name="name">globetrotter.city.tree</field>
+        <field name="model">globetrotter.city</field>
+        <field name="arch" type="xml">
+            <tree string="Destination Cities">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="country"/>
+                <field name="region"/>
+                <field name="cost_index"/>
+                <field name="popularity"/>
+                <field name="season"/>
+                <field name="accent" widget="badge"/>
+                <field name="activity_count"/>
+                <field name="status" widget="badge"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_globetrotter_city_form" model="ir.ui.view">
+        <field name="name">globetrotter.city.form</field>
+        <field name="model">globetrotter.city</field>
+        <field name="arch" type="xml">
+            <form string="Destination City">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only" string="City Name"/>
+                        <h1><field name="name" placeholder="e.g. Goa"/></h1>
+                    </div>
+                    <group>
+                        <group string="Geographic &amp; Theme">
+                            <field name="code"/>
+                            <field name="country"/>
+                            <field name="region"/>
+                            <field name="latitude"/>
+                            <field name="longitude"/>
+                            <field name="accent"/>
+                        </group>
+                        <group string="Travel Guide Metadata">
+                            <field name="cost_index"/>
+                            <field name="popularity"/>
+                            <field name="season"/>
+                            <field name="status"/>
+                            <field name="image_url"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description">
+                            <field name="description"/>
+                        </page>
+                        <page string="Catalog Activities">
+                            <field name="activity_ids">
+                                <tree string="City Activities">
+                                    <field name="name"/>
+                                    <field name="category"/>
+                                    <field name="duration"/>
+                                    <field name="estimated_cost" widget="monetary"/>
+                                    <field name="location"/>
+                                    <field name="rating"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_globetrotter_cities" model="ir.actions.act_window">
+        <field name="name">Destinations</field>
+        <field name="res_model">globetrotter.city</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
