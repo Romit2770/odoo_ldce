@@ -10,6 +10,7 @@ import { DestinationPhotoGallery } from "@/components/travel/DestinationPhotoGal
 import { StorybookAtlasMap } from "@/components/travel/StorybookAtlasMap";
 import { DestinationPickerMap } from "@/components/travel/DestinationPickerMap";
 import { useTripPlanner } from "@/contexts/TripPlannerContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { goaPhotoStory } from "@/domain/destinationPhotoStories";
 import { activityIdeas, cityCatalog, sampleTripSummaries, type ActivityIdea, type TripStatus } from "@/domain/trip";
 import { formatRupees, getAllActivities, getAllDays, getEstimatedCost, getExpenseBreakdown, getPlanningProgress } from "@/lib/tripMath";
@@ -60,18 +61,34 @@ export function TripsPage() {
 
 */
 
+export function getTimeGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) {
+    return "Good Morning";
+  }
+  if (hour >= 12 && hour < 17) {
+    return "Good Afternoon";
+  }
+  return "Good Evening";
+}
+
 export function DashboardPage() {
   const { trip, estimatedCost } = useTripPlanner();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const progress = getPlanningProgress(trip);
   const remaining = trip.budget - estimatedCost;
   const activityCount = getAllActivities(trip).length;
 
+  const timeGreeting = getTimeGreeting();
+  const firstName = user?.name ? user.name.trim().split(/\s+/)[0] : "there";
+  const greetingTitle = `${timeGreeting}, ${firstName}.`;
+
   return (
     <div className="page-stack dashboard-page">
       <PageIntro
         eyebrow="Tuesday, 22 August"
-        title="Good morning, Mita."
+        title={greetingTitle}
         accent="Where will your next story take you?"
         description="Your Goa route is warm, organised, and nearly ready for the good kind of detour."
         action={<div className="intro-actions"><button className="coral-button" onClick={() => setLocation("/trips/new")}><PlaneTakeoff size={17} /> Plan a new trip</button><button className="outlined-action" onClick={() => setLocation("/destinations")}><Compass size={17} /> Explore destinations</button></div>}
