@@ -9,6 +9,7 @@ The repository contains both the polished React/TypeScript Storybook Atlas front
 
 | Component | Status | Details |
 | --- | --- | --- |
+| **Authentication & Entry Flow** | Complete | Polished Storybook Atlas `/login`, `/register`, `/forgot-password`, `/onboarding` (4-step setup), and Demo Workspace (*Traveler* / *Admin*). |
 | **Odoo Backend Module** | Complete | Located in `addons/globetrotter`, defining 12 relational models & business logic. |
 | **PostgreSQL Schema** | Complete | Normalized relational hierarchy: `Trip → TripStop → ItineraryDay → TripActivity`, `Budget`, `Expense`, `SharedTrip`. |
 | **API Controllers** | Complete | 11 RESTful controllers with standardized JSON responses & error handling. |
