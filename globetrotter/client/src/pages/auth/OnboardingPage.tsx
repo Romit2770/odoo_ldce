@@ -21,7 +21,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
-import { MusafirBrand } from "@/components/brand/MusafirBrand";
+import brandLogo from "@/assets/branding/globetrotter-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthTransition } from "@/components/auth/AuthTransition";
 
@@ -181,7 +181,13 @@ export function OnboardingPage() {
       )}
 
       <header className="onboarding-header">
-        <MusafirBrand variant="auth" />
+        <div className="brand-lockup">
+          <img src={brandLogo} alt="GlobeTrotter" className="brand-mark" />
+          <span>
+            <span className="brand-name">GlobeTrotter</span>
+            <span className="brand-tag">PLAN IT YOUR WAY</span>
+          </span>
+        </div>
 
         <div className="onboarding-stepper">
           <span className="stepper-label">

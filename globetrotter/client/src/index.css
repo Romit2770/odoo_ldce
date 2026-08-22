@@ -1491,663 +1491,849 @@ h1 em, h2 em, h1 .handwritten { color: var(--coral); font-style: normal; }
   .onboarding-step-card {
     padding: 24px 18px;
   }
+
+  .onboarding-style-grid,
+  .onboarding-destinations-grid,
+  .onboarding-currency-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ==========================================================================
-   MUSAFIR — BRAND & DASHBOARD STYLES
+   STORYBOOK ATLAS — INTERACTIVE MAP SYSTEM (DUAL-STATE & DESTINATION PICKER)
    ========================================================================== */
 
-/* Musafir Logo & Brand Lockups */
-.musafir-logo-frame {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  padding: 0;
-  border: 0;
-  line-height: 0;
+/* Map Card Container */
+.atlas-interactive-map-card {
+  position: relative;
+  overflow: hidden;
+  border: 2.5px solid var(--ink);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 4px 6px 0 var(--ink);
+  transition: box-shadow 200ms ease;
+  min-height: 380px;
 }
 
-.musafir-logo-img {
-  width: auto;
-  height: 100%;
-  max-width: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.25));
-}
-
-.sidebar-frame {
-  width: 52px;
-  height: 52px;
-  margin-right: 12px;
-}
-
-.header-frame,
-.admin-frame {
-  width: 38px;
-  height: 38px;
-  margin-right: 8px;
-}
-
-.auth-frame {
-  width: 64px;
-  height: 64px;
-  margin-right: 12px;
-}
-
-.musafir-sidebar-brand {
+.map-heading-right {
   display: flex;
   align-items: center;
-  padding: 8px 4px;
-  background: transparent;
-  border: 0;
-  text-align: left;
-  cursor: pointer;
-  width: 100%;
-  margin-bottom: 6px;
+  gap: 8px;
 }
 
-.musafir-sidebar-brand .brand-name {
-  font-family: "Baloo 2", sans-serif;
-  font-size: 26px;
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-
-.musafir-sidebar-brand .brand-tag {
-  display: block;
+.map-mode-toggle-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: #fff0c7;
+  color: var(--ink);
   font-size: 10px;
-  font-weight: 700;
-  color: #ffd256;
-  letter-spacing: 0.06em;
-  margin-top: 3px;
-  text-transform: none;
-  opacity: 0.95;
-}
-
-.auth-brand-lockup {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.auth-brand-lockup .brand-name {
-  font-family: "Baloo 2", sans-serif;
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--ink);
-  line-height: 1;
-}
-
-.auth-brand-lockup .brand-tag {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--coral);
-  display: block;
-  margin-top: 2px;
-}
-
-.topbar-desk-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 10px 4px 6px;
-  border: 1.5px solid var(--ink);
-  border-radius: 999px;
-  background: #ffffff;
-  box-shadow: 2px 2px 0 var(--ink);
-}
-
-.desk-title-text {
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--ink);
-}
-
-/* Musafir Discover Hero */
-.musafir-discover-hero {
-  padding-top: 10px;
-  margin-bottom: 24px;
-}
-
-.musafir-hero-header-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 24px;
-}
-
-.musafir-discover-eyebrow {
-  display: block;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #728197;
-  margin-bottom: 4px;
-}
-
-.musafir-display-title {
-  font-family: "Baloo 2", sans-serif;
-  font-size: clamp(52px, 6.2vw, 88px);
-  line-height: 0.9;
-  letter-spacing: -0.06em;
-  color: #17263e;
-  margin: 0 0 6px;
-}
-
-.musafir-tagline-trail-wrap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-
-.musafir-tagline-text {
-  font-family: "Baloo 2", sans-serif;
-  font-size: clamp(22px, 2.5vw, 30px);
-  font-weight: 700;
-  color: #21324e;
-  letter-spacing: -0.02em;
-}
-
-.musafir-trail-plane-svg {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: 2px;
-}
-
-.flight-trail-svg {
-  width: 90px;
-  height: 28px;
-  overflow: visible;
-}
-
-.plane-glyph {
-  font-size: 18px;
-  line-height: 1;
-  color: var(--coral);
-  transform: rotate(20deg);
-  display: inline-block;
-}
-
-.musafir-hero-subtext {
-  color: #5c6c80;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.45;
-  margin: 0;
-  max-width: 580px;
-}
-
-.musafir-start-route-btn {
-  padding: 10px 18px;
-  border: 2px solid var(--ink);
-  border-radius: 12px;
-  background: #ffffff;
-  color: var(--ink);
-  font-family: "DM Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 800;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 3px 3px 0 var(--ink);
-  cursor: pointer;
-  transition: transform 140ms ease, box-shadow 140ms ease;
-  white-space: nowrap;
-}
-
-.musafir-start-route-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 4px 5px 0 var(--ink);
-}
-
-/* Discovery Search & Filter Row */
-.musafir-search-filter-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 18px;
-}
-
-.musafir-search-box {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 10px 16px;
-  border: 2px solid var(--ink);
-  border-radius: 12px;
-  background: #ffffff;
-  min-width: 240px;
-  max-width: 340px;
-  flex: 1;
-  box-shadow: 2px 2px 0 var(--ink);
-}
-
-.musafir-search-box input {
-  border: 0;
-  background: transparent;
-  outline: 0;
-  color: var(--ink);
-  font-size: 13px;
-  font-weight: 600;
-  width: 100%;
-}
-
-.musafir-search-box input::placeholder {
-  color: #8c9ba9;
-}
-
-.musafir-filter-chips {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.musafir-filter-chip {
-  padding: 7px 16px;
-  border: 1.5px solid var(--ink);
-  border-radius: 999px;
-  background: #ffffff;
-  color: #4b5c71;
-  font-size: 12px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 1.5px 2px 0 rgba(35, 48, 74, 0.25);
-  transition: all 120ms ease;
+  box-shadow: 1.5px 1.5px 0 var(--ink);
+  transition: all 150ms ease;
 }
 
-.musafir-filter-chip:hover {
-  background: #fff3ce;
-  color: var(--ink);
+.map-mode-toggle-chip:hover {
+  background: var(--coral);
+  color: #ffffff;
 }
 
-.musafir-filter-chip.active {
-  background: #ffc53d;
-  color: var(--ink);
-  border-color: var(--ink);
+/* Dual Layer Transition Architecture */
+.illustrated-map-layer {
+  position: relative;
+  z-index: 2;
+  transition: opacity 700ms cubic-bezier(0.23, 1, 0.32, 1), transform 700ms cubic-bezier(0.23, 1, 0.32, 1);
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.real-map-layer {
+  position: absolute;
+  inset: 54px 0 44px 0; /* Align perfectly with panel-heading and map-foot */
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.03);
+  transition: opacity 700ms cubic-bezier(0.23, 1, 0.32, 1), transform 700ms cubic-bezier(0.23, 1, 0.32, 1);
+  background: #fbf8f2;
+}
+
+/* When Real Map Mode is Active (Hover on Desktop / Tap on Mobile) */
+.atlas-interactive-map-card.is-real-mode .illustrated-map-layer {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.97);
+}
+
+.atlas-interactive-map-card.is-real-mode .real-map-layer {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+  z-index: 3;
+}
+
+/* Hover Cue Banner */
+.illustrated-hover-cue {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.cue-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.95);
   box-shadow: 2px 3px 0 var(--ink);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--ink);
+  backdrop-filter: blur(4px);
+  animation: pulseFloat 2.5s infinite ease-in-out;
 }
 
-/* Follow The Pins Divider */
-.follow-the-pins-divider {
+@keyframes pulseFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Leaflet Canvas inside card */
+.leaflet-map-canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  border-top: 1.5px solid rgba(35, 48, 74, 0.15);
+  border-bottom: 1.5px solid rgba(35, 48, 74, 0.15);
+}
+
+/* Floating Controls on Real Map */
+.real-map-floating-bar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin: 32px 0 24px;
-  position: relative;
+  justify-content: space-between;
+  z-index: 1000;
+  pointer-events: none;
 }
 
-.pins-line {
-  flex: 1;
-  border-top: 2px dashed rgba(255, 101, 80, 0.45);
-}
-
-.pins-badge {
-  padding: 4px 12px;
-  border: 1.5px solid var(--ink);
-  border-radius: 999px;
-  background: #ffffff;
-  box-shadow: 2px 2px 0 var(--ink);
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  color: var(--ink);
-  text-transform: uppercase;
-}
-
-.pins-decor {
+.real-route-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  padding: 5px 11px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 2px 2px 0 var(--ink);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--ink);
+  pointer-events: auto;
 }
 
-.decor-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  border: 1px solid var(--ink);
-}
-
-.decor-dot.yellow {
-  background: var(--mustard);
-}
-
-.decor-dot.teal {
-  background: var(--teal);
-}
-
-/* Destination Postcards Grid */
-.destination-postcards-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.musafir-destination-card {
-  border: 2px solid var(--ink);
-  border-radius: 16px;
-  padding: 18px 16px 14px;
-  box-shadow: 4px 5px 0 var(--ink);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 230px;
-  position: relative;
-  transition: transform 140ms ease, box-shadow 140ms ease;
-  text-align: left;
-}
-
-.musafir-destination-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 6px 8px 0 var(--ink);
-}
-
-.musafir-destination-card.card-jaipur {
-  background: #ffeae4;
-}
-
-.musafir-destination-card.card-udaipur {
-  background: #e4f5f1;
-}
-
-.musafir-destination-card.card-gokarna {
-  background: #fcf4db;
-}
-
-.musafir-destination-card.card-bengaluru {
-  background: #e5f3ee;
-}
-
-.dest-card-top-row {
+.map-floating-controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
+  gap: 6px;
+  pointer-events: auto;
 }
 
-.destination-state-badge {
+.map-float-btn {
+  padding: 5px 9px;
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 800;
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
-  border: 1.5px solid var(--ink);
-  border-radius: 6px;
-  background: #ffc53d;
-  color: var(--ink);
-  font-size: 8px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  box-shadow: 1.5px 1.5px 0 var(--ink);
-  text-transform: uppercase;
-}
-
-.destination-card-heart {
-  width: 28px;
-  height: 28px;
-  border: 1.5px solid var(--ink);
-  border-radius: 50%;
-  background: #ffffff;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  box-shadow: 1.5px 1.5px 0 var(--ink);
-  color: #7b8b9e;
   transition: transform 100ms ease;
 }
 
-.destination-card-heart:hover {
-  transform: scale(1.1);
+.map-float-btn:hover {
+  transform: translateY(-1px);
 }
 
-.destination-card-heart.is-saved {
-  color: #e5484d;
-  background: #fff1f0;
+.map-float-btn.return-btn {
+  background: #ffc53d;
 }
 
-.musafir-destination-card h3 {
+/* Custom GlobeTrotter Storybook Atlas Leaflet Markers */
+.custom-atlas-div-icon {
+  background: transparent;
+  border: 0;
+}
+
+.atlas-real-marker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: scaleInMarker 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.atlas-real-marker:hover,
+.atlas-real-marker.is-selected {
+  transform: translateY(-4px) scale(1.1);
+  z-index: 1000 !important;
+}
+
+.marker-pulse-ring {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 101, 80, 0.35);
+  animation: pulseRing 1.8s infinite ease-out;
+  pointer-events: none;
+}
+
+.marker-badge {
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--coral);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
   font-family: "Baloo 2", sans-serif;
-  font-size: 26px;
-  line-height: 0.95;
-  letter-spacing: -0.04em;
-  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 2px 2px 0 var(--ink);
+  position: relative;
+  z-index: 2;
+}
+
+.marker-start .marker-badge {
+  background: #ffc53d;
   color: var(--ink);
 }
 
-.dest-season-sub {
-  font-size: 11px;
-  font-weight: 700;
-  color: #63758b;
-  margin-bottom: 8px;
+.marker-end .marker-badge {
+  background: #2cb9aa;
+  color: #ffffff;
+}
+
+.marker-flag {
+  margin-top: 3px;
+  padding: 2px 7px;
+  border: 1.5px solid var(--ink);
+  border-radius: 5px;
+  background: #fffdf8;
+  color: var(--ink);
+  font-size: 9px;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 1.5px 1.5px 0 var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.marker-city {
   display: block;
 }
 
-.dest-desc-text {
-  font-size: 11px;
-  color: #55687d;
-  line-height: 1.4;
-  margin: 0 0 16px;
-  flex: 1;
+.marker-date {
+  font-size: 7px;
+  color: #6a7c90;
+  font-weight: 700;
 }
 
-.destination-card-footer {
+@keyframes scaleInMarker {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulseRing {
+  0% {
+    transform: translateX(-50%) scale(0.7);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(-50%) scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* Custom Marker Popup Styling */
+.atlas-custom-popup .leaflet-popup-content-wrapper {
+  background: #fffdf8;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 3px 4px 0 var(--ink);
+  padding: 0;
+  overflow: hidden;
+}
+
+.atlas-custom-popup .leaflet-popup-tip {
+  background: var(--ink);
+}
+
+.atlas-marker-popup {
+  padding: 10px 12px;
+  min-width: 150px;
+}
+
+.popup-head {
+  margin-bottom: 4px;
+}
+
+.popup-tag {
+  display: inline-block;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7b8c9f;
+}
+
+.popup-head h4 {
+  font-family: "Baloo 2", sans-serif;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--ink);
+  margin: 2px 0 0;
+}
+
+.popup-dates {
+  font-size: 9px;
+  font-weight: 700;
+  color: #55677b;
+  margin: 3px 0 6px;
+}
+
+.popup-stats {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-top: auto;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(35, 48, 74, 0.25);
-}
-
-.destination-style-pill {
-  font-size: 9px;
+  border-top: 1px dashed #cad4df;
+  padding-top: 5px;
+  font-size: 8px;
   font-weight: 800;
-  color: #6a7c91;
-  text-transform: capitalize;
+  color: #607286;
 }
 
-.destination-add-btn {
-  padding: 5px 10px;
-  border: 1.5px solid var(--ink);
-  border-radius: 8px;
-  background: #ffffff;
-  color: var(--ink);
-  font-size: 10px;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 2px 2px 0 var(--ink);
-  transition: transform 100ms ease;
-  white-space: nowrap;
+/* Animated Road Route in Leaflet */
+.leaflet-animated-route {
+  stroke-dasharray: 8, 8;
+  animation: dashFlow 25s linear infinite;
 }
 
-.destination-add-btn:hover {
-  transform: translateY(-1px);
+@keyframes dashFlow {
+  from {
+    stroke-dashoffset: 500;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
-.wishlist-summary-note {
-  font-size: 12px;
-  font-weight: 700;
-  color: #5a6c81;
-  margin: 12px 0 28px;
+.active-foot-stop {
+  background: #fff0c7;
+  border-radius: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--ink);
 }
 
-/* Small Adventures & Activities */
-.small-adventures-section {
-  margin-top: 16px;
-  margin-bottom: 32px;
+.is-focused-stop {
+  background: #fff3cf !important;
+  border-color: var(--coral) !important;
+  transform: translateX(4px);
 }
 
-.small-adventures-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
+/* ==========================================================================
+   DESTINATION PICKER WORKSPACE (NEW TRIP STEP 2)
+   ========================================================================== */
 
-.small-adventures-header .section-eyebrow {
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #728197;
-  display: block;
-  margin-bottom: 2px;
-}
-
-.small-adventures-header h2 {
-  font-family: "Baloo 2", sans-serif;
-  font-size: clamp(24px, 2.8vw, 34px);
-  line-height: 0.95;
-  margin: 0;
-  color: var(--ink);
-}
-
-.finds-counter-badge {
-  padding: 4px 10px;
-  border: 1.5px solid var(--ink);
-  border-radius: 999px;
-  background: #ffffff;
-  font-size: 10px;
-  font-weight: 900;
-  color: var(--ink);
-  box-shadow: 2px 2px 0 var(--ink);
-}
-
-.activities-discovery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px;
-}
-
-.musafir-activity-card {
-  padding: 16px;
-  border: 2px solid var(--ink);
-  border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 3px 4px 0 var(--ink);
+.destination-picker-workspace {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  transition: transform 120ms ease;
+  gap: 16px;
+  margin: 18px 0;
 }
 
-.musafir-activity-card:hover {
-  transform: translateY(-2px);
+/* Search Bar */
+.dest-search-container {
+  position: relative;
+  z-index: 30;
 }
 
-.activity-card-top {
+.dest-search-bar {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  padding: 10px 14px;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 3px 4px 0 var(--ink);
 }
 
-.activity-card-icon {
-  width: 38px;
-  height: 38px;
-  border: 1.5px solid var(--ink);
-  border-radius: 10px;
-  background: #fff8e8;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
+.search-icon {
+  color: #6a7c90;
   flex-shrink: 0;
 }
 
-.activity-card-details {
+.dest-search-input {
   flex: 1;
-}
-
-.activity-card-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 9px;
-  font-weight: 800;
-  color: #697a8e;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-
-.activity-card-rating {
-  color: #d97706;
-  font-weight: 900;
-}
-
-.musafir-activity-card h4 {
-  font-family: "Baloo 2", sans-serif;
-  font-size: 17px;
-  line-height: 1.1;
-  margin: 0 0 4px;
+  border: 0;
+  background: transparent;
+  outline: 0;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--ink);
 }
 
-.activity-card-desc {
-  font-size: 11px;
-  color: #5d6f83;
-  line-height: 1.35;
+.dest-search-input::placeholder {
+  color: #8c9ba9;
+  font-weight: 600;
+}
+
+.clear-search-btn {
+  border: 0;
+  background: transparent;
+  color: #8394a6;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.dest-search-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 4px 6px 0 var(--ink);
+  padding: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  animation: slideUp 160ms ease;
+}
+
+.dropdown-header {
+  display: block;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: #8495a8;
+  padding: 4px 8px 6px;
+}
+
+.search-result-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  background: #fffdf8;
+  text-align: left;
+  cursor: pointer;
+  transition: all 120ms ease;
+  margin-bottom: 4px;
+}
+
+.search-result-item:hover {
+  background: #fff3cf;
+  border-color: var(--ink);
+  transform: translateX(2px);
+}
+
+.result-icon-box {
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  background: #d4f0ea;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--ink);
+}
+
+.result-text-box {
+  flex: 1;
+}
+
+.result-text-box strong {
+  display: block;
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.result-text-box small {
+  font-size: 10px;
+  color: #68798d;
+}
+
+.add-glyph {
+  color: var(--coral);
+  flex-shrink: 0;
+}
+
+/* Interactive Split Grid */
+.dest-interactive-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+  gap: 16px;
+}
+
+.dest-map-viewport {
+  position: relative;
+  min-height: 380px;
+  border: 2.5px solid var(--ink);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 4px 5px 0 var(--ink);
+  background: #fdfaf4;
+}
+
+.picker-map-element {
+  width: 100%;
+  height: 100%;
+  min-height: 380px;
+}
+
+.picker-map-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  background: rgba(255, 253, 248, 0.95);
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  pointer-events: none;
+}
+
+.map-pin-prompt-box {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 1000;
+  background: #ffffff;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 3px 4px 0 var(--ink);
+  padding: 12px 14px;
+  animation: slideUp 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.prompt-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.prompt-header strong {
+  font-size: 13px;
+}
+
+.map-pin-prompt-box p {
+  font-size: 10px;
+  color: #65768a;
+  margin: 0 0 10px;
+}
+
+.prompt-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-xs {
+  padding: 5px 10px !important;
+  font-size: 11px !important;
+}
+
+.picker-route-stats {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+/* Selected Stops List Pane */
+.dest-selected-pane {
+  background: #ffffff;
+  border: 2.5px solid var(--ink);
+  border-radius: 16px;
+  padding: 18px 16px;
+  box-shadow: 4px 5px 0 var(--ink);
+  display: flex;
+  flex-direction: column;
+}
+
+.pane-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.pane-title-row h3 {
+  font-family: "Baloo 2", sans-serif;
+  font-size: 20px;
+  line-height: 1;
   margin: 0;
 }
 
-.activity-card-foot {
+.route-badge {
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 3px 6px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: #d4f0ea;
+}
+
+.pane-hint {
+  font-size: 10px;
+  color: #6c7d91;
+  line-height: 1.4;
+  margin: 0 0 12px;
+}
+
+.dest-stops-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 240px;
+  padding-right: 2px;
+}
+
+.empty-stops-box {
+  padding: 24px 12px;
+  text-align: center;
+  border: 1.5px dashed #cad4df;
+  border-radius: 10px;
+  background: #fdfaf4;
+}
+
+.empty-stops-box strong {
+  display: block;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.empty-stops-box p {
+  font-size: 10px;
+  color: #7b8c9f;
+  margin: 2px 0 0;
+}
+
+.dest-stop-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(35, 48, 74, 0.2);
-}
-
-.activity-cost-tag {
-  font-family: "Baloo 2", sans-serif;
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--coral);
-}
-
-.activity-add-btn {
-  padding: 6px 12px;
-  border: 1.5px solid var(--ink);
-  border-radius: 8px;
-  background: var(--coral);
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 800;
-  cursor: pointer;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: #fffdf8;
   box-shadow: 2px 2px 0 var(--ink);
-  transition: transform 100ms ease;
+  cursor: pointer;
+  transition: transform 120ms ease, background-color 120ms ease;
 }
 
-.activity-add-btn:hover {
+.dest-stop-row:hover {
+  background: #fff3cf;
+  transform: translateX(2px);
+}
+
+.dest-stop-row.is-selected {
+  background: #fff0c7;
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.stop-num {
+  font-family: "Baloo 2", sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.stop-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.stop-details strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stop-details small {
+  display: block;
+  font-size: 9px;
+  color: #6a7c90;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stop-order-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.order-btn,
+.remove-stop-btn {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--ink);
+  border-radius: 5px;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--ink);
+  transition: background-color 100ms ease;
+}
+
+.order-btn:hover:not(:disabled) {
+  background: #ffc53d;
+}
+
+.order-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.remove-stop-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Quick Catalog Recommendations */
+.quick-catalog-section {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1.5px dashed #cad4df;
+}
+
+.catalog-label {
+  display: block;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #7d8e9f;
+  margin-bottom: 6px;
+}
+
+.quick-choice-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.catalog-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: #fffdf8;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 1.5px 1.5px 0 var(--ink);
+  transition: all 120ms ease;
+}
+
+.catalog-chip:hover:not(:disabled) {
+  background: #fff0c7;
   transform: translateY(-1px);
 }
 
-/* Responsive adjustments */
-@media (max-width: 1180px) {
-  .destination-postcards-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.catalog-chip.is-added {
+  background: #d4f0ea;
+  opacity: 0.75;
+  cursor: default;
 }
 
-@media (max-width: 640px) {
-  .destination-postcards-grid {
+/* Responsive adjustment */
+@media (max-width: 860px) {
+  .dest-interactive-grid {
     grid-template-columns: 1fr;
   }
-  
-  .musafir-hero-header-row {
-    flex-direction: column;
+
+  .dest-map-viewport {
+    min-height: 280px;
   }
 }
 

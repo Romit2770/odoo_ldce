@@ -7,6 +7,8 @@ import { BackToTrips, EmptyJournal, PageIntro, RouteConnector, TripTabs } from "
 import { DemoDialog } from "@/components/DemoUi";
 import { AtlasRevealImage } from "@/components/travel/AtlasRevealImage";
 import { DestinationPhotoGallery } from "@/components/travel/DestinationPhotoGallery";
+import { StorybookAtlasMap } from "@/components/travel/StorybookAtlasMap";
+import { DestinationPickerMap } from "@/components/travel/DestinationPickerMap";
 import { useTripPlanner } from "@/contexts/TripPlannerContext";
 import { goaPhotoStory } from "@/domain/destinationPhotoStories";
 import { activityIdeas, cityCatalog, sampleTripSummaries, type ActivityIdea, type TripStatus } from "@/domain/trip";
@@ -59,320 +61,45 @@ export function TripsPage() {
 */
 
 export function DashboardPage() {
-  const { trip, estimatedCost, addStop, savedDestinationIds, toggleSavedDestination, addActivity } = useTripPlanner();
+  const { trip, estimatedCost } = useTripPlanner();
   const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [picker, setPicker] = useState<ActivityIdea | null>(null);
-
-  const categories = ["All", "Adventure", "Culture", "Food", "Nature", "Relaxation"];
-
-  const filteredDestinations = useMemo(() => {
-    return cityCatalog.filter((city) => {
-      const matchQuery =
-        city.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        city.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        city.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchQuery;
-    });
-  }, [searchQuery]);
-
-  const filteredActivities = useMemo(() => {
-    return activityIdeas.filter((act) => {
-      const matchCat = selectedCategory === "All" || act.category === selectedCategory;
-      const matchQuery =
-        act.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        act.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        act.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchCat && matchQuery;
-    });
-  }, [selectedCategory, searchQuery]);
-
-  const handleAddCityToTrip = (cityName: string) => {
-    const city = cityCatalog.find((c) => c.name === cityName);
-    if (!city) return;
-    addStop({
-      city: city.name,
-      country: city.country,
-      region: city.region,
-      dateRange: "17–18 Aug",
-      arrival: "17 Aug",
-      departure: "18 Aug",
-    });
-    toast.success(`${city.name} added to your ${trip.name} route.`);
-  };
-
   const progress = getPlanningProgress(trip);
   const remaining = trip.budget - estimatedCost;
+  const activityCount = getAllActivities(trip).length;
 
   return (
-    <div className="page-stack dashboard-page musafir-dashboard-page">
-      {/* 1. DISCOVER HERO */}
-      <section className="musafir-discover-hero">
-        <div className="musafir-hero-header-row">
-          <div>
-            <span className="musafir-discover-eyebrow">DISCOVER</span>
-            <h1 className="musafir-display-title">Musafir</h1>
-            <div className="musafir-tagline-trail-wrap">
-              <span className="musafir-tagline-text">every trip has a story</span>
-              <div className="musafir-trail-plane-svg">
-                <svg className="flight-trail-svg" viewBox="0 0 100 30" fill="none">
-                  <path
-                    d="M 5 22 Q 45 3 85 14"
-                    stroke="#2CB9AA"
-                    strokeWidth="2.5"
-                    strokeDasharray="4 4"
-                  />
-                </svg>
-                <span className="plane-glyph">✈️</span>
-              </div>
-            </div>
-            <p className="musafir-hero-subtext">
-              Search places and moments that can become real pieces of your next itinerary.
-            </p>
-          </div>
-          <button
-            className="musafir-start-route-btn"
-            onClick={() => setLocation("/trips/new")}
-          >
-            <PlaneTakeoff size={18} strokeWidth={2.4} />
-            <span>Start a route</span>
-          </button>
-        </div>
-
-        {/* 2. SEARCH & DISCOVERY FILTERS */}
-        <div className="musafir-search-filter-row">
-          <div className="musafir-search-box">
-            <Search size={18} className="search-icon" />
-            <input
-              type="text"
-              placeholder="Find things to do"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Find things to do"
-            />
-          </div>
-          <div className="musafir-filter-chips">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                className={`musafir-filter-chip ${selectedCategory === cat ? "active" : ""}`}
-                onClick={() => setSelectedCategory(cat)}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 3. FOLLOW THE PINS DIVIDER */}
-      <div className="follow-the-pins-divider">
-        <span className="pins-line" />
-        <div className="pins-badge">FOLLOW THE PINS</div>
-        <div className="pins-decor">
-          <span className="decor-pin">📍</span>
-          <span className="decor-star">✦</span>
-          <span className="decor-dot yellow" />
-          <span className="decor-dot teal" />
-        </div>
-        <span className="pins-line" />
-      </div>
-
-      {/* 4. DESTINATION POSTCARD CARDS */}
-      <section className="destination-postcards-grid">
-        {filteredDestinations.map((city) => {
-          const isSaved = savedDestinationIds.includes(city.id);
-          const cardVariant =
-            city.id === "jaipur"
-              ? "card-jaipur"
-              : city.id === "udaipur"
-              ? "card-udaipur"
-              : city.id === "gokarna"
-              ? "card-gokarna"
-              : "card-bengaluru";
-
-          return (
-            <article key={city.id} className={`musafir-destination-card ${cardVariant}`}>
-              <div className="dest-card-top-row">
-                <span className="destination-state-badge">
-                  <MapPin size={11} /> {city.region}
-                </span>
-                <button
-                  type="button"
-                  className={`destination-card-heart ${isSaved ? "is-saved" : ""}`}
-                  aria-label={isSaved ? `Remove ${city.name}` : `Save ${city.name}`}
-                  onClick={() => {
-                    toggleSavedDestination(city.id);
-                    toast.success(
-                      isSaved
-                        ? `${city.name} removed from your saved places.`
-                        : `${city.name} saved to your travel wish list.`
-                    );
-                  }}
-                >
-                  <Heart size={15} fill={isSaved ? "#E5484D" : "none"} strokeWidth={2.2} />
-                </button>
-              </div>
-
-              <div>
-                <h3>{city.name}</h3>
-                <span className="dest-season-sub">
-                  {city.country} · {city.season}
-                </span>
-              </div>
-
-              <p className="dest-desc-text">"{city.description}"</p>
-
-              <div className="destination-card-footer">
-                <span className="destination-style-pill">{city.costIndex}</span>
-                <button
-                  type="button"
-                  className="destination-add-btn"
-                  onClick={() => handleAddCityToTrip(city.name)}
-                >
-                  Add to trip +
-                </button>
-              </div>
-            </article>
-          );
-        })}
-      </section>
-
-      <p className="wishlist-summary-note">
-        {savedDestinationIds.length} places pinned in your travel wish list.
-      </p>
-
-      {/* 5. SMALL ADVENTURES / ACTIVITY DISCOVERY */}
-      <section className="small-adventures-section">
-        <div className="small-adventures-header">
-          <div>
-            <span className="section-eyebrow">SMALL ADVENTURES</span>
-            <h2>Leave room for the good stuff.</h2>
-          </div>
-          <span className="finds-counter-badge">{filteredActivities.length} finds</span>
-        </div>
-
-        <div className="activities-discovery-grid">
-          {filteredActivities.map((act) => (
-            <article key={act.name} className="musafir-activity-card">
-              <div className="activity-card-top">
-                <span className="activity-card-icon">{act.icon}</span>
-                <div className="activity-card-details">
-                  <div className="activity-card-meta">
-                    <span>{act.category}</span>
-                    <span>·</span>
-                    <span className="activity-card-rating">{act.rating} ★</span>
-                  </div>
-                  <h4>{act.name}</h4>
-                  <p className="activity-card-desc">{act.description}</p>
-                </div>
-              </div>
-
-              <div className="activity-card-foot">
-                <div>
-                  <span className="activity-cost-tag">{formatRupees(act.cost)}</span>
-                  <small style={{ display: "block", fontSize: "10px", color: "#6a7b8e" }}>
-                    {act.location} · {act.duration}
-                  </small>
-                </div>
-                <button
-                  type="button"
-                  className="activity-add-btn"
-                  onClick={() => setPicker(act)}
-                >
-                  Add to itinerary +
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {/* 6. ACTIVE TRIP PULSE / GOA ADVENTURE */}
-      <section className="dashboard-grid refined-dashboard-grid" style={{ marginTop: "12px" }}>
+    <div className="page-stack dashboard-page">
+      <PageIntro
+        eyebrow="Tuesday, 22 August"
+        title="Good morning, Mita."
+        accent="Where will your next story take you?"
+        description="Your Goa route is warm, organised, and nearly ready for the good kind of detour."
+        action={<div className="intro-actions"><button className="coral-button" onClick={() => setLocation("/trips/new")}><PlaneTakeoff size={17} /> Plan a new trip</button><button className="outlined-action" onClick={() => setLocation("/destinations")}><Compass size={17} /> Explore destinations</button></div>}
+      />
+      <section className="dashboard-grid refined-dashboard-grid">
         <article className="hero-trip-card">
           <div className="hero-copy">
-            <div className="ticket-label"><Crown size={15} /> Current journey</div>
+            <div className="ticket-label"><Crown size={15} /> Next big story</div>
             <h2>{trip.name}<br /><span>is taking shape.</span></h2>
             <p>{trip.description}</p>
-            <div className="hero-metadata">
-              <span><CalendarDays size={15} /> {trip.dateRange}</span>
-              <span><MapPin size={15} /> Mumbai → Goa</span>
-            </div>
-            <button className="coral-button" onClick={() => setLocation("/trips/goa-adventure")}>
-              Open trip overview <ArrowRight size={18} />
-            </button>
+            <div className="hero-metadata"><span><CalendarDays size={15} /> {trip.dateRange}</span><span><MapPin size={15} /> Mumbai → Goa</span></div>
+            <button className="coral-button" onClick={() => setLocation("/trips/goa-adventure")}>Open trip overview <ArrowRight size={18} /></button>
           </div>
-          <img
-            src={HERO_ART}
-            alt="Illustrated tropical travel route with a car, paper plane, palms, and scenic destinations"
-            className="hero-art"
-          />
+          <img src={HERO_ART} alt="Illustrated tropical travel route with a car, paper plane, palms, and scenic destinations" className="hero-art" />
           <div className="hero-stamp">5<br /><span>days</span></div>
         </article>
-
         <aside className="trip-pulse-card">
-          <div className="panel-heading">
-            <div><span className="eyebrow">Journey pulse</span><h3>Ready for takeoff</h3></div>
-            <button aria-label="Trip options"><MoreHorizontal size={20} /></button>
-          </div>
-          <div className="route-snapshot">
-            <span className="route-dot start">1</span>
-            <span className="route-dash" />
-            <span className="route-dot end">2</span>
-            <div><strong>Mumbai</strong><small>12–13 Aug</small></div>
-            <div><strong>Goa</strong><small>14–16 Aug</small></div>
-          </div>
+          <div className="panel-heading"><div><span className="eyebrow">Journey pulse</span><h3>Ready for takeoff</h3></div><button aria-label="Trip options"><MoreHorizontal size={20} /></button></div>
+          <div className="route-snapshot"><span className="route-dot start">1</span><span className="route-dash" /><span className="route-dot end">2</span><div><strong>Mumbai</strong><small>12–13 Aug</small></div><div><strong>Goa</strong><small>14–16 Aug</small></div></div>
           <div className="pulse-divider" />
-          <div className="progress-ring-block">
-            <div className="progress-ring" style={{ "--progress": `${progress * 3.6}deg` } as React.CSSProperties}>
-              <div><strong>{progress}%</strong><span>planned</span></div>
-            </div>
-            <div className="progress-ring-copy">
-              <strong>Route outlined</strong>
-              <span>{getAllActivities(trip).length} planned moments across {trip.stops.length} stops</span>
-            </div>
-          </div>
+          <div className="progress-ring-block"><div className="progress-ring" style={{ "--progress": `${progress * 3.6}deg` } as React.CSSProperties}><div><strong>{progress}%</strong><span>planned</span></div></div><div className="progress-ring-copy"><strong>Route outlined</strong><span>{activityCount} planned moments across {trip.stops.length} stops</span></div></div>
           <div className="pulse-divider" />
-          <button className="budget-mini actionable-mini" onClick={() => setLocation("/trips/goa-adventure/budget")}>
-            <div className="coin-icon"><CircleDollarSign size={18} /></div>
-            <div><span>Budget breathing room</span><strong>{formatRupees(remaining)} left to play with</strong></div>
-            <ChevronRight size={17} />
-          </button>
+          <button className="budget-mini actionable-mini" onClick={() => setLocation("/trips/goa-adventure/budget")}><div className="coin-icon"><CircleDollarSign size={18} /></div><div><span>Budget breathing room</span><strong>{formatRupees(remaining)} left to play with</strong></div><ChevronRight size={17} /></button>
         </aside>
       </section>
-
-      {/* Activity Picker Modal */}
-      {picker && (
-        <div className="modal-backdrop" role="presentation">
-          <section className="travel-modal" role="dialog" aria-modal="true" aria-labelledby="dash-activity-title">
-            <button className="modal-close" onClick={() => setPicker(null)} aria-label="Close activity picker">×</button>
-            <span className="ticket-label"><Plus size={13} /> Add to itinerary</span>
-            <h2 id="dash-activity-title">Place {picker.name} in {trip.name}.</h2>
-            <p>Choose which day this activity belongs to. Your budget, calendar, and itinerary will update in sync.</p>
-            <div className="picker-day-list">
-              {trip.stops.flatMap((stop) =>
-                stop.days.map((day) => (
-                  <button
-                    key={day.id}
-                    onClick={() => {
-                      addActivity(stop.id, day.id, picker);
-                      setPicker(null);
-                      toast.success(`${picker.name} added to Day ${day.dayNumber} in ${stop.city}.`);
-                    }}
-                  >
-                    <span>{day.city}</span>
-                    <strong>Day {day.dayNumber} · {day.date}</strong>
-                    <ChevronRight size={17} />
-                  </button>
-                ))
-              )}
-            </div>
-          </section>
-        </div>
-      )}
+      <section className="section-row"><div className="section-heading"><div><span className="eyebrow">Your travel desk</span><h2>Keep the good stuff moving.</h2></div><button onClick={() => setLocation("/trips/goa-adventure/itinerary")} className="text-action">See full plan <ArrowRight size={16} /></button></div><div className="next-step-grid"><button className="next-step-card mustard" onClick={() => setLocation("/destinations")}><span className="step-count">01</span><div className="step-icon"><Plus size={20} /></div><h3>Add a new stop</h3><p>Put the next pin on your route.</p><ArrowRight size={18} /></button><button className="next-step-card teal" onClick={() => setLocation("/activities")}><span className="step-count">02</span><div className="step-icon"><WandSparkles size={20} /></div><h3>Find a standout activity</h3><p>Make the Goa days more you.</p><ArrowRight size={18} /></button><button className="next-step-card coral" onClick={() => setLocation("/trips/goa-adventure/share")}><span className="step-count">03</span><div className="step-icon"><Share2 size={20} /></div><h3>Send the rough cut</h3><p>Invite a travel buddy in early.</p><ArrowRight size={18} /></button></div></section>
+      <section className="dashboard-lower-grid"><article className="dashboard-list-card"><div className="panel-heading"><div><span className="eyebrow">Upcoming trips</span><h3>Your next pages</h3></div><button className="text-action" onClick={() => setLocation("/trips")}>All trips <ArrowRight size={14} /></button></div><button className="mini-trip-row" onClick={() => setLocation("/trips/goa-adventure")}><span className="mini-trip-art teal"><Route size={16} /></span><div><strong>Goa Adventure</strong><span>Mumbai → Goa · 12–16 Aug</span></div><StatusPill status="Upcoming" /><ChevronRight size={16} /></button><button className="mini-trip-row" onClick={() => setLocation("/trips")}><span className="mini-trip-art coral"><Route size={16} /></span><div><strong>Jaipur Notebook</strong><span>Jaipur → Udaipur · 14–18 Nov</span></div><StatusPill status="Draft" /><ChevronRight size={16} /></button></article><article className="dashboard-budget-card"><span className="eyebrow">Budget snapshot</span><h3>{formatRupees(estimatedCost)} <em>planned</em></h3><div className="mini-budget-track"><i style={{ width: `${Math.min(100, Math.round((estimatedCost / trip.budget) * 100))}%` }} /></div><p><strong>{formatRupees(remaining)}</strong> is still open for tiny pleasures, quiet taxis, or one bigger moment.</p><button className="outlined-action" onClick={() => setLocation("/trips/goa-adventure/budget")}>Visit Budget Buddy <ArrowRight size={15} /></button></article></section>
+      <section className="stories-strip"><div className="stories-content"><div><span className="eyebrow">Passport ideas</span><h2>Borrow a little magic from other routes.</h2><p>Explore thoughtful travel prompts tuned to the styles you’ve saved.</p><button className="ink-button" onClick={() => setLocation("/discover")}>Browse discoveries <ArrowRight size={16} /></button></div><img src={STAMPS_ART} alt="Illustrated city route symbols for travel inspiration" /></div></section>
     </div>
   );
 }
@@ -398,42 +125,212 @@ export function TripWizardPage() {
 
 export function TripWizardPage() {
   const [, setLocation] = useLocation();
-  const { trip, updateTripBasics, addStop } = useTripPlanner();
+  const { trip, updateTripBasics, addStop, removeStop, reorderStopIndex } = useTripPlanner();
   const [step, setStep] = useState(1);
   const [name, setName] = useState(trip.name);
   const [budget, setBudget] = useState(String(trip.budget));
   const [style, setStyle] = useState(trip.travelStyle);
   const [description, setDescription] = useState(trip.description);
-  const [selectedCities, setSelectedCities] = useState<string[]>(trip.stops.map((stop) => stop.city));
   const steps = ["Basics", "Destinations", "Activities", "Review"];
 
-  const toggleCity = (city: string) => setSelectedCities((current) => current.includes(city) ? current.filter((item) => item !== city) : [...current, city]);
-  const addNewCity = (cityId: string) => {
-    const city = cityCatalog.find((item) => item.id === cityId);
-    if (!city || selectedCities.includes(city.name)) return;
-    toggleCity(city.name);
-    addStop({ city: city.name, country: city.country, region: city.region, dateRange: "17–18 Aug", arrival: "Mon, 17 Aug", departure: "Tue, 18 Aug" });
-    toast.success(`${city.name} is now a draft destination.`);
-  };
   const finish = () => {
-    updateTripBasics({ name: name.trim() || "Goa Adventure", budget: Number(budget) || 25000, description, travelStyle: style });
+    updateTripBasics({
+      name: name.trim() || "Goa Adventure",
+      budget: Number(budget) || 25000,
+      description,
+      travelStyle: style,
+    });
     toast.success("Your trip basics are saved. The route is ready to shape.");
     setLocation(`/trips/${trip.id}`);
   };
 
-  return <div className="page-stack wizard-page">
-    <PageIntro eyebrow="Plan a new trip" title="Sketch the basics." accent="The details can wander later." description="This guided route keeps the big decisions clear without making trip planning feel like paperwork." action={<button className="soft-link" onClick={() => setLocation("/trips")}>← Back to my trips</button>} />
-    <section className="wizard-shell">
-      <div className="wizard-progress">{steps.map((label, index) => <button key={label} className={step === index + 1 ? "active" : step > index + 1 ? "done" : ""} onClick={() => setStep(index + 1)}><b>{step > index + 1 ? <Check size={14} /> : `0${index + 1}`}</b><span>{label}</span></button>)}</div>
-      <div className="wizard-stage">
-        {step === 1 && <><span className="ticket-label"><Sparkles size={14} /> Step one</span><h2>Give the journey a name.</h2><p>A great route starts with an intention. You can keep it practical or write something worth remembering.</p><div className="field-grid"><label><span>Trip name</span><input value={name} onChange={(event) => setName(event.target.value)} /></label><label><span>Total budget</span><input type="number" value={budget} onChange={(event) => setBudget(event.target.value)} /></label><label><span>Start date</span><input defaultValue="12 Aug 2026" /></label><label><span>End date</span><input defaultValue="16 Aug 2026" /></label></div><label className="wide-field"><span>What kind of story is this?</span><textarea value={description} onChange={(event) => setDescription(event.target.value)} /></label><div className="style-picker">{(["Adventure", "Relaxation", "Culture", "Food", "Nature", "Budget"] as const).map((item) => <button key={item} className={style === item ? "active" : ""} onClick={() => setStyle(item)}>{item}</button>)}</div></>}
-        {step === 2 && <><span className="ticket-label"><MapPin size={14} /> Step two</span><h2>Lay out the journey.</h2><p>Your stops become the spine of the itinerary, budget, calendar, and map.</p><div className="wizard-route-list">{selectedCities.map((city, index) => <div key={city}><span>{String(index + 1).padStart(2, "0")}</span><strong>{city}</strong><button onClick={() => toggleCity(city)} aria-label={`Remove ${city}`}><Trash2 size={16} /></button></div>)}</div><div className="city-choice-row">{cityCatalog.map((city) => <button key={city.id} className={selectedCities.includes(city.name) ? "selected" : ""} onClick={() => addNewCity(city.id)}><MapPin size={16} /> {city.name}<small>{city.region}</small></button>)}</div></>}
-        {step === 3 && <><span className="ticket-label"><WandSparkles size={14} /> Step three</span><h2>Seed the good bits.</h2><p>Pick an activity to start with. You can place, edit, or move it later inside the itinerary.</p><div className="wizard-activity-grid">{activityIdeas.slice(0, 3).map((idea) => <div key={idea.name}><span>{idea.icon}</span><div><strong>{idea.name}</strong><small>{idea.duration} · {formatRupees(idea.cost)}</small></div><Check size={18} /></div>)}</div></>}
-        {step === 4 && <><span className="ticket-label"><ClipboardCopy size={14} /> Step four</span><h2>One last look.</h2><p>Here’s the shape of the journey you are about to open.</p><div className="wizard-review"><div><span>Trip</span><strong>{name || "Goa Adventure"}</strong></div><div><span>Budget</span><strong>{formatRupees(Number(budget) || 25000)}</strong></div><div><span>Style</span><strong>{style}</strong></div><div><span>Stops</span><strong>{selectedCities.join(" → ")}</strong></div></div></>}
-        <div className="wizard-footer"><button className="outlined-action" disabled={step === 1} onClick={() => setStep((value) => value - 1)}>Back</button>{step < 4 ? <button className="coral-button" onClick={() => setStep((value) => value + 1)}>Continue <ArrowRight size={17} /></button> : <button className="coral-button" onClick={finish}>Open my trip <PlaneTakeoff size={17} /></button>}</div>
-      </div>
-    </section>
-  </div>;
+  const selectedRouteString = trip.stops.map((s) => s.city).join(" → ");
+
+  return (
+    <div className="page-stack wizard-page">
+      <PageIntro
+        eyebrow="Plan a new trip"
+        title="Sketch the basics."
+        accent="The details can wander later."
+        description="This guided route keeps the big decisions clear without making trip planning feel like paperwork."
+        action={
+          <button className="soft-link" onClick={() => setLocation("/trips")}>
+            ← Back to my trips
+          </button>
+        }
+      />
+      <section className="wizard-shell">
+        <div className="wizard-progress">
+          {steps.map((label, index) => (
+            <button
+              key={label}
+              className={step === index + 1 ? "active" : step > index + 1 ? "done" : ""}
+              onClick={() => setStep(index + 1)}
+            >
+              <b>{step > index + 1 ? <Check size={14} /> : `0${index + 1}`}</b>
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+        <div className="wizard-stage">
+          {step === 1 && (
+            <>
+              <span className="ticket-label">
+                <Sparkles size={14} /> Step one
+              </span>
+              <h2>Give the journey a name.</h2>
+              <p>
+                A great route starts with an intention. You can keep it practical or write something
+                worth remembering.
+              </p>
+              <div className="field-grid">
+                <label>
+                  <span>Trip name</span>
+                  <input value={name} onChange={(event) => setName(event.target.value)} />
+                </label>
+                <label>
+                  <span>Total budget</span>
+                  <input
+                    type="number"
+                    value={budget}
+                    onChange={(event) => setBudget(event.target.value)}
+                  />
+                </label>
+                <label>
+                  <span>Start date</span>
+                  <input defaultValue="12 Aug 2026" />
+                </label>
+                <label>
+                  <span>End date</span>
+                  <input defaultValue="16 Aug 2026" />
+                </label>
+              </div>
+              <label className="wide-field">
+                <span>What kind of story is this?</span>
+                <textarea
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                />
+              </label>
+              <div className="style-picker">
+                {(
+                  [
+                    "Adventure",
+                    "Relaxation",
+                    "Culture",
+                    "Food",
+                    "Nature",
+                    "Budget",
+                  ] as const
+                ).map((item) => (
+                  <button
+                    key={item}
+                    className={style === item ? "active" : ""}
+                    onClick={() => setStyle(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <span className="ticket-label">
+                <MapPin size={14} /> Step two
+              </span>
+              <h2>Lay out the journey on the map.</h2>
+              <p>
+                Search any city or place worldwide, view real road route connections, and organize
+                your stops.
+              </p>
+              <DestinationPickerMap
+                stops={trip.stops}
+                onAddStop={addStop}
+                onRemoveStop={removeStop}
+                onReorderStops={reorderStopIndex}
+              />
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <span className="ticket-label">
+                <WandSparkles size={14} /> Step three
+              </span>
+              <h2>Seed the good bits.</h2>
+              <p>
+                Pick an activity to start with. You can place, edit, or move it later inside the
+                itinerary.
+              </p>
+              <div className="wizard-activity-grid">
+                {activityIdeas.slice(0, 3).map((idea) => (
+                  <div key={idea.name}>
+                    <span>{idea.icon}</span>
+                    <div>
+                      <strong>{idea.name}</strong>
+                      <small>
+                        {idea.duration} · {formatRupees(idea.cost)}
+                      </small>
+                    </div>
+                    <Check size={18} />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {step === 4 && (
+            <>
+              <span className="ticket-label">
+                <ClipboardCopy size={14} /> Step four
+              </span>
+              <h2>One last look.</h2>
+              <p>Here’s the shape of the journey you are about to open.</p>
+              <div className="wizard-review">
+                <div>
+                  <span>Trip</span>
+                  <strong>{name || "Goa Adventure"}</strong>
+                </div>
+                <div>
+                  <span>Budget</span>
+                  <strong>{formatRupees(Number(budget) || 25000)}</strong>
+                </div>
+                <div>
+                  <span>Style</span>
+                  <strong>{style}</strong>
+                </div>
+                <div>
+                  <span>Stops</span>
+                  <strong>{selectedRouteString || "Mumbai → Goa"}</strong>
+                </div>
+              </div>
+            </>
+          )}
+
+          <div className="wizard-footer">
+            <button
+              className="outlined-action"
+              disabled={step === 1}
+              onClick={() => setStep((value) => value - 1)}
+            >
+              Back
+            </button>
+            {step < 4 ? (
+              <button className="coral-button" onClick={() => setStep((value) => value + 1)}>
+                Continue <ArrowRight size={17} />
+              </button>
+            ) : (
+              <button className="coral-button" onClick={finish}>
+                Open my trip <PlaneTakeoff size={17} />
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 export function TripsPage() {
@@ -482,7 +379,7 @@ export function TripOverviewPage() {
   const { trip, estimatedCost } = useTripPlanner();
   const [, setLocation] = useLocation();
   const activities = getAllActivities(trip);
-  return <div className="page-stack trip-overview-page atlas-overview-page"><BackToTrips /><PageIntro eyebrow="Trip overview" title={trip.name} accent="is ready for a closer look." description={trip.description} action={<div className="intro-actions"><button className="outlined-action" onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}><LayoutList size={17} /> Itinerary</button><button className="coral-button" onClick={() => setLocation(`/trips/${trip.id}/share`)}><Share2 size={17} /> Share</button></div>} /><TripTabs active="overview" /><section className="atlas-overview-hero"><AtlasRevealImage destinationName={goaPhotoStory.name} illustrationSrc={goaPhotoStory.illustrationSrc} realImageSrc={goaPhotoStory.realImageSrc} alt="Illustrated Goa coast and fort in the Musafir atlas" caption={goaPhotoStory.revealCaption} /><div className="atlas-overview-copy"><span className="ticket-label"><Route size={14} /> {trip.stops.map((stop) => stop.city).join(" → ")}</span><h2>{trip.dateRange}</h2><p>{trip.duration} · {trip.stops.length} city stops · {activities.length} planned moments</p><div className="overview-stat-row"><TripStat label="total budget" value={formatRupees(trip.budget)} icon={<WalletCards size={16} />} /><TripStat label="estimated" value={formatRupees(estimatedCost)} icon={<CircleDollarSign size={16} />} /><TripStat label="remaining" value={formatRupees(trip.budget - estimatedCost)} icon={<Sparkles size={16} />} /></div><p className="atlas-overview-note"><Sparkles size={14} /> Hover, focus, or tap the atlas scene to reveal Goa in real life.</p></div></section><section className="overview-grid"><article className="ink-card journey-overview-card"><div className="panel-heading"><div><span className="eyebrow">Journey timeline</span><h3>Every pin in order</h3></div><button className="text-action" onClick={() => setLocation(`/trips/${trip.id}/map`)}>Map <ArrowRight size={14} /></button></div><div className="overview-route">{trip.stops.map((stop, index) => <div key={stop.id}><span style={{ background: stop.color }}>{String(index + 1).padStart(2, "0")}</span><div><strong>{stop.city}</strong><small>{stop.country} · {stop.dateRange}</small></div>{index < trip.stops.length - 1 && <i />}</div>)}</div></article><article className="ink-card upcoming-card"><div className="panel-heading"><div><span className="eyebrow">Upcoming moments</span><h3>Next on the page</h3></div><button className="text-action" onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}>Edit <Pencil size={14} /></button></div>{activities.slice(0, 3).map((activity) => <div className="upcoming-row" key={activity.id}><span>{activity.time}</span><div><strong>{activity.name}</strong><small>{activity.location} · {activity.duration}</small></div><b>{activity.cost ? formatRupees(activity.cost) : "Free"}</b></div>)}</article></section><DestinationPhotoGallery story={goaPhotoStory} onAddExperiences={() => setLocation("/activities")} /></div>;
+  return <div className="page-stack trip-overview-page atlas-overview-page"><BackToTrips /><PageIntro eyebrow="Trip overview" title={trip.name} accent="is ready for a closer look." description={trip.description} action={<div className="intro-actions"><button className="outlined-action" onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}><LayoutList size={17} /> Itinerary</button><button className="coral-button" onClick={() => setLocation(`/trips/${trip.id}/share`)}><Share2 size={17} /> Share</button></div>} /><TripTabs active="overview" /><section className="atlas-overview-hero"><AtlasRevealImage destinationName={goaPhotoStory.name} illustrationSrc={goaPhotoStory.illustrationSrc} realImageSrc={goaPhotoStory.realImageSrc} alt="Illustrated Goa coast and fort in the GlobeTrotter atlas" caption={goaPhotoStory.revealCaption} /><div className="atlas-overview-copy"><span className="ticket-label"><Route size={14} /> {trip.stops.map((stop) => stop.city).join(" → ")}</span><h2>{trip.dateRange}</h2><p>{trip.duration} · {trip.stops.length} city stops · {activities.length} planned moments</p><div className="overview-stat-row"><TripStat label="total budget" value={formatRupees(trip.budget)} icon={<WalletCards size={16} />} /><TripStat label="estimated" value={formatRupees(estimatedCost)} icon={<CircleDollarSign size={16} />} /><TripStat label="remaining" value={formatRupees(trip.budget - estimatedCost)} icon={<Sparkles size={16} />} /></div><p className="atlas-overview-note"><Sparkles size={14} /> Hover, focus, or tap the atlas scene to reveal Goa in real life.</p></div></section><section className="overview-grid"><article className="ink-card journey-overview-card"><div className="panel-heading"><div><span className="eyebrow">Journey timeline</span><h3>Every pin in order</h3></div><button className="text-action" onClick={() => setLocation(`/trips/${trip.id}/map`)}>Map <ArrowRight size={14} /></button></div><div className="overview-route">{trip.stops.map((stop, index) => <div key={stop.id}><span style={{ background: stop.color }}>{String(index + 1).padStart(2, "0")}</span><div><strong>{stop.city}</strong><small>{stop.country} · {stop.dateRange}</small></div>{index < trip.stops.length - 1 && <i />}</div>)}</div></article><article className="ink-card upcoming-card"><div className="panel-heading"><div><span className="eyebrow">Upcoming moments</span><h3>Next on the page</h3></div><button className="text-action" onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}>Edit <Pencil size={14} /></button></div>{activities.slice(0, 3).map((activity) => <div className="upcoming-row" key={activity.id}><span>{activity.time}</span><div><strong>{activity.name}</strong><small>{activity.location} · {activity.duration}</small></div><b>{activity.cost ? formatRupees(activity.cost) : "Free"}</b></div>)}</article></section><DestinationPhotoGallery story={goaPhotoStory} onAddExperiences={() => setLocation("/activities")} /></div>;
 }
 
 export function ItineraryPage() {
@@ -493,7 +390,7 @@ export function ItineraryPage() {
   const toggleDay = (dayId: string) => setOpenDays((open) => open.includes(dayId) ? open.filter((id) => id !== dayId) : [...open, dayId]);
   const handleActivityDrop = (event: DragEvent<HTMLDivElement>, targetDayId: string) => { event.preventDefault(); if (!dragging) return; moveActivity(dragging.dayId, dragging.activityId, targetDayId); setDragging(null); toast.success("Activity moved. Your budget and calendar have followed along."); };
   const handleStopDrop = (event: DragEvent<HTMLButtonElement>, targetStopId: string) => { event.preventDefault(); const source = event.dataTransfer.getData("stop-id"); if (source && source !== targetStopId) { reorderStops(source, targetStopId); toast.success("Stops reordered across your trip."); } };
-  return <div className="page-stack itinerary-page"><BackToTrips /><PageIntro eyebrow="Trip builder" title={trip.name} accent="— shape the days, not just the dates." description="Drag activities between days, duplicate a useful moment, or trim a plan that is trying to do too much." action={<div className="intro-actions"><button className="outlined-action" onClick={() => setLocation(`/trips/${trip.id}/calendar`)}><CalendarDays size={17} /> Calendar</button><button className="coral-button" onClick={() => setLocation("/activities")}><Plus size={17} /> Add activity</button></div>} /><TripTabs active="itinerary" /><section className="itinerary-workspace"><aside className="stop-rail ink-card"><div className="panel-heading"><div><span className="eyebrow">{trip.stops.length} stops</span><h3>The route</h3></div><Route size={19} /></div><div className="vertical-route">{trip.stops.map((stop, index) => <button draggable key={stop.id} onDragStart={(event) => event.dataTransfer.setData("stop-id", stop.id)} onDragOver={(event) => event.preventDefault()} onDrop={(event) => handleStopDrop(event, stop.id)} className="stop-item drag-stop"><span className="stop-pin" style={{ backgroundColor: stop.color }}>{index + 1}</span><div><strong>{stop.city}</strong><span>{stop.dateRange}</span></div><GripVertical size={15} /></button>)}</div><button className="add-stop-link" onClick={() => setLocation("/destinations")}><Plus size={17} /> Add destination</button></aside><div className="itinerary-canvas">{trip.stops.map((stop, stopIndex) => <section className="stop-board" key={stop.id}><div className="stop-board-head"><div className="city-marker" style={{ backgroundColor: stop.color }}>{stop.city.slice(0, 1)}</div><div><span className="eyebrow">Stop {String(stopIndex + 1).padStart(2, "0")} · {stop.dateRange}</span><h2>{stop.city}, <em>{stop.country}</em></h2></div><button className="more-button" aria-label={`Remove ${stop.city}`} onClick={() => { removeStop(stop.id); toast.success(`${stop.city} removed from this route.`); }}><Trash2 size={17} /></button></div>{stop.days.map((day) => <div className={`day-lane ${openDays.includes(day.id) ? "open" : "closed"}`} key={day.id}><button className="day-label day-toggle" onClick={() => toggleDay(day.id)}><span>Day {day.dayNumber}</span><strong>{day.date}</strong><small>{day.city}</small><ChevronDown size={16} /></button>{openDays.includes(day.id) && <div className="activity-stack drop-zone" onDragOver={(event) => event.preventDefault()} onDrop={(event) => handleActivityDrop(event, day.id)}>{day.activities.map((activity) => <div className="activity-ticket draggable-activity" key={activity.id} draggable onDragStart={() => setDragging({ dayId: day.id, activityId: activity.id })} onDragEnd={() => setDragging(null)}><GripVertical className="drag-handle" size={15} /><span className="activity-time">{activity.time}</span><div><strong>{activity.name}</strong><span>{activity.category} · {activity.location} · {activity.duration}</span></div><b>{activity.cost ? formatRupees(activity.cost) : "Free"}</b><div className="activity-actions"><button aria-label={`Duplicate ${activity.name}`} onClick={() => { duplicateActivity(day.id, activity.id); toast.success("A copy is ready to edit."); }}><Copy size={14} /></button><button aria-label={`Remove ${activity.name}`} onClick={() => { deleteActivity(day.id, activity.id); toast.success("Activity removed. The budget has updated."); }}><Trash2 size={14} /></button></div></div>)}<button className="drop-hint" onClick={() => setLocation("/activities")}><Plus size={15} /> Add to Day {day.dayNumber} or drop an activity here</button></div>}</div>)}</section>)}</div><aside className="trip-summary-rail"><div className="summary-ticket"><span className="ticket-label"><WalletCards size={14} /> Trip snapshot</span><h3>{formatRupees(estimatedCost)}</h3><p>Estimated across {getAllActivities(trip).length} moments.</p><div className="mini-budget-track"><i style={{ width: `${Math.round((estimatedCost / trip.budget) * 100)}%` }} /></div><strong>{formatRupees(trip.budget - estimatedCost)} breathing room</strong><button className="text-action" onClick={() => setLocation(`/trips/${trip.id}/budget`)}>Open budget <ArrowRight size={15} /></button></div><div className="itinerary-tip"><Sparkles size={17} /><p><strong>Drag tip:</strong> carry an activity to a different day and Musafir keeps your cost trail in sync.</p></div></aside></section></div>;
+  return <div className="page-stack itinerary-page"><BackToTrips /><PageIntro eyebrow="Trip builder" title={trip.name} accent="— shape the days, not just the dates." description="Drag activities between days, duplicate a useful moment, or trim a plan that is trying to do too much." action={<div className="intro-actions"><button className="outlined-action" onClick={() => setLocation(`/trips/${trip.id}/calendar`)}><CalendarDays size={17} /> Calendar</button><button className="coral-button" onClick={() => setLocation("/activities")}><Plus size={17} /> Add activity</button></div>} /><TripTabs active="itinerary" /><section className="itinerary-workspace"><aside className="stop-rail ink-card"><div className="panel-heading"><div><span className="eyebrow">{trip.stops.length} stops</span><h3>The route</h3></div><Route size={19} /></div><div className="vertical-route">{trip.stops.map((stop, index) => <button draggable key={stop.id} onDragStart={(event) => event.dataTransfer.setData("stop-id", stop.id)} onDragOver={(event) => event.preventDefault()} onDrop={(event) => handleStopDrop(event, stop.id)} className="stop-item drag-stop"><span className="stop-pin" style={{ backgroundColor: stop.color }}>{index + 1}</span><div><strong>{stop.city}</strong><span>{stop.dateRange}</span></div><GripVertical size={15} /></button>)}</div><button className="add-stop-link" onClick={() => setLocation("/destinations")}><Plus size={17} /> Add destination</button></aside><div className="itinerary-canvas">{trip.stops.map((stop, stopIndex) => <section className="stop-board" key={stop.id}><div className="stop-board-head"><div className="city-marker" style={{ backgroundColor: stop.color }}>{stop.city.slice(0, 1)}</div><div><span className="eyebrow">Stop {String(stopIndex + 1).padStart(2, "0")} · {stop.dateRange}</span><h2>{stop.city}, <em>{stop.country}</em></h2></div><button className="more-button" aria-label={`Remove ${stop.city}`} onClick={() => { removeStop(stop.id); toast.success(`${stop.city} removed from this route.`); }}><Trash2 size={17} /></button></div>{stop.days.map((day) => <div className={`day-lane ${openDays.includes(day.id) ? "open" : "closed"}`} key={day.id}><button className="day-label day-toggle" onClick={() => toggleDay(day.id)}><span>Day {day.dayNumber}</span><strong>{day.date}</strong><small>{day.city}</small><ChevronDown size={16} /></button>{openDays.includes(day.id) && <div className="activity-stack drop-zone" onDragOver={(event) => event.preventDefault()} onDrop={(event) => handleActivityDrop(event, day.id)}>{day.activities.map((activity) => <div className="activity-ticket draggable-activity" key={activity.id} draggable onDragStart={() => setDragging({ dayId: day.id, activityId: activity.id })} onDragEnd={() => setDragging(null)}><GripVertical className="drag-handle" size={15} /><span className="activity-time">{activity.time}</span><div><strong>{activity.name}</strong><span>{activity.category} · {activity.location} · {activity.duration}</span></div><b>{activity.cost ? formatRupees(activity.cost) : "Free"}</b><div className="activity-actions"><button aria-label={`Duplicate ${activity.name}`} onClick={() => { duplicateActivity(day.id, activity.id); toast.success("A copy is ready to edit."); }}><Copy size={14} /></button><button aria-label={`Remove ${activity.name}`} onClick={() => { deleteActivity(day.id, activity.id); toast.success("Activity removed. The budget has updated."); }}><Trash2 size={14} /></button></div></div>)}<button className="drop-hint" onClick={() => setLocation("/activities")}><Plus size={15} /> Add to Day {day.dayNumber} or drop an activity here</button></div>}</div>)}</section>)}</div><aside className="trip-summary-rail"><div className="summary-ticket"><span className="ticket-label"><WalletCards size={14} /> Trip snapshot</span><h3>{formatRupees(estimatedCost)}</h3><p>Estimated across {getAllActivities(trip).length} moments.</p><div className="mini-budget-track"><i style={{ width: `${Math.round((estimatedCost / trip.budget) * 100)}%` }} /></div><strong>{formatRupees(trip.budget - estimatedCost)} breathing room</strong><button className="text-action" onClick={() => setLocation(`/trips/${trip.id}/budget`)}>Open budget <ArrowRight size={15} /></button></div><div className="itinerary-tip"><Sparkles size={17} /><p><strong>Drag tip:</strong> carry an activity to a different day and GlobeTrotter keeps your cost trail in sync.</p></div></aside></section></div>;
 }
 
 export function BudgetPage() {
@@ -514,8 +411,162 @@ export function MapCalendarPage() {
   const { trip } = useTripPlanner();
   const [pathname, setLocation] = useLocation();
   const [mode, setMode] = useState(pathname.includes("calendar") ? "calendar" : "map");
+  const [activeStopId, setActiveStopId] = useState<string | undefined>(trip.stops[0]?.id);
   const days = getAllDays(trip);
-  return <div className="page-stack map-page"><BackToTrips /><PageIntro eyebrow="Map & calendar" title="See the trip" accent="all at once." description="Switch between the route and the rhythm of the days, then return to the itinerary when a detail needs a tweak." action={<button className="outlined-action" onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}><LayoutList size={17} /> View itinerary</button>} /><TripTabs active={pathname.includes("calendar") ? "calendar" : "map"} /><div className="view-toggle"><button className={mode === "map" ? "active" : ""} onClick={() => setMode("map")}><MapPin size={16} /> Route map</button><button className={mode === "calendar" ? "active" : ""} onClick={() => setMode("calendar")}><CalendarDays size={16} /> Calendar & timeline</button></div><RouteConnector label={mode === "map" ? "follow the dotted line" : "make space for the day"} />{mode === "map" ? <section className="map-calendar-grid"><article className="route-map-card"><div className="panel-heading"><div><span className="eyebrow">Your route</span><h3>{trip.stops.map((stop) => stop.city).join(" → ")}</h3></div><span className="map-distance"><Route size={15} /> 590 km</span></div><div className="map-illustration">{trip.stops.map((stop, index) => <span className={`map-location ${index === 0 ? "mumbai" : "goa"}`} key={stop.id}><i>{index + 1}</i>{stop.city}</span>)}<svg viewBox="0 0 600 320" preserveAspectRatio="none" aria-hidden="true"><path d="M128 72 C210 85 154 190 305 184 S390 260 475 222" /></svg><div className="map-sun" /><div className="map-cloud c1" /><div className="map-cloud c2" /><div className="map-hill h1" /><div className="map-hill h2" /></div><div className="map-foot">{trip.stops.map((stop) => <span key={stop.id}><b>{stop.arrival}</b> {stop.city}</span>)}</div></article><article className="map-stop-card"><div className="panel-heading"><div><span className="eyebrow">Stop notes</span><h3>Turn the route into days</h3></div><Compass size={20} /></div>{trip.stops.map((stop, index) => <div className="map-stop-note" key={stop.id}><span style={{ background: stop.color }}>{index + 1}</span><div><strong>{stop.city}</strong><small>{stop.dateRange} · {stop.days.length} days</small></div><ChevronRight size={16} /></div>)}<button className="outlined-action" onClick={() => setMode("calendar")}>Open calendar <ArrowRight size={15} /></button></article></section> : <section className="calendar-timeline-layout"><article className="calendar-card expanded-calendar"><div className="panel-heading"><div><span className="eyebrow">August 2026</span><h3>Trip calendar</h3></div><button aria-label="Calendar options"><MoreHorizontal size={20} /></button></div><div className="calendar-weekdays">{["M", "T", "W", "T", "F", "S", "S"].map((day, i) => <span key={`${day}-${i}`}>{day}</span>)}</div><div className="calendar-dates">{Array.from({ length: 31 }, (_, i) => i + 1).map((date) => <span key={date} className={date >= 12 && date <= 16 ? `trip-date d${date}` : ""}>{date}{date === 12 && <small>Mumbai</small>}{date === 14 && <small>Goa</small>}</span>)}</div><div className="calendar-note"><CalendarDays size={16} /><span>Five days, {trip.stops.length} stops, {getAllActivities(trip).length} planned moments.</span></div></article><article className="timeline-card"><div className="panel-heading"><div><span className="eyebrow">Timeline</span><h3>What is happening when?</h3></div><button className="text-action" onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}>Edit <Pencil size={14} /></button></div>{days.map((day) => <details key={day.id} open><summary><span>Day {day.dayNumber}</span><strong>{day.date} · {day.city}</strong><ChevronDown size={16} /></summary><div>{day.activities.map((activity) => <p key={activity.id}><b>{activity.time}</b><span>{activity.name}</span><small>{activity.duration} · {formatRupees(activity.cost)}</small></p>)}</div></details>)}</article></section>}</div>;
+
+  return (
+    <div className="page-stack map-page">
+      <BackToTrips />
+      <PageIntro
+        eyebrow="Map & calendar"
+        title="See the trip"
+        accent="all at once."
+        description="Switch between the route and the rhythm of the days, then return to the itinerary when a detail needs a tweak."
+        action={
+          <button
+            className="outlined-action"
+            onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}
+          >
+            <LayoutList size={17} /> View itinerary
+          </button>
+        }
+      />
+      <TripTabs active={pathname.includes("calendar") ? "calendar" : "map"} />
+      <div className="view-toggle">
+        <button
+          className={mode === "map" ? "active" : ""}
+          onClick={() => setMode("map")}
+        >
+          <MapPin size={16} /> Route map
+        </button>
+        <button
+          className={mode === "calendar" ? "active" : ""}
+          onClick={() => setMode("calendar")}
+        >
+          <CalendarDays size={16} /> Calendar & timeline
+        </button>
+      </div>
+      <RouteConnector
+        label={mode === "map" ? "follow the dotted line" : "make space for the day"}
+      />
+      {mode === "map" ? (
+        <section className="map-calendar-grid">
+          {/* Dual-State Storybook Atlas Interactive Map */}
+          <StorybookAtlasMap
+            stops={trip.stops}
+            tripName={trip.name}
+            activeStopId={activeStopId}
+            onSelectStop={setActiveStopId}
+          />
+
+          {/* Connected Stop Notes Card */}
+          <article className="map-stop-card">
+            <div className="panel-heading">
+              <div>
+                <span className="eyebrow">Stop notes</span>
+                <h3>Turn the route into days</h3>
+              </div>
+              <Compass size={20} />
+            </div>
+            {trip.stops.map((stop, index) => (
+              <div
+                className={`map-stop-note ${activeStopId === stop.id ? "is-focused-stop" : ""}`}
+                key={stop.id}
+                onClick={() => setActiveStopId(stop.id)}
+                style={{ cursor: "pointer" }}
+              >
+                <span style={{ background: stop.color }}>{index + 1}</span>
+                <div>
+                  <strong>{stop.city}</strong>
+                  <small>
+                    {stop.dateRange} · {stop.days.length} days
+                  </small>
+                </div>
+                <ChevronRight size={16} />
+              </div>
+            ))}
+            <button className="outlined-action" onClick={() => setMode("calendar")}>
+              Open calendar <ArrowRight size={15} />
+            </button>
+          </article>
+        </section>
+      ) : (
+        <section className="calendar-timeline-layout">
+          <article className="calendar-card expanded-calendar">
+            <div className="panel-heading">
+              <div>
+                <span className="eyebrow">August 2026</span>
+                <h3>Trip calendar</h3>
+              </div>
+              <button aria-label="Calendar options">
+                <MoreHorizontal size={20} />
+              </button>
+            </div>
+            <div className="calendar-weekdays">
+              {["M", "T", "W", "T", "F", "S", "S"].map((day, i) => (
+                <span key={`${day}-${i}`}>{day}</span>
+              ))}
+            </div>
+            <div className="calendar-dates">
+              {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => (
+                <span
+                  key={date}
+                  className={date >= 12 && date <= 16 ? `trip-date d${date}` : ""}
+                >
+                  {date}
+                  {date === 12 && <small>Mumbai</small>}
+                  {date === 14 && <small>Goa</small>}
+                </span>
+              ))}
+            </div>
+            <div className="calendar-note">
+              <CalendarDays size={16} />
+              <span>
+                Five days, {trip.stops.length} stops, {getAllActivities(trip).length} planned
+                moments.
+              </span>
+            </div>
+          </article>
+          <article className="timeline-card">
+            <div className="panel-heading">
+              <div>
+                <span className="eyebrow">Timeline</span>
+                <h3>What is happening when?</h3>
+              </div>
+              <button
+                className="text-action"
+                onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}
+              >
+                Edit <Pencil size={14} />
+              </button>
+            </div>
+            {days.map((day) => (
+              <details key={day.id} open>
+                <summary>
+                  <span>Day {day.dayNumber}</span>
+                  <strong>
+                    {day.date} · {day.city}
+                  </strong>
+                  <ChevronDown size={16} />
+                </summary>
+                <div>
+                  {day.activities.map((activity) => (
+                    <p key={activity.id}>
+                      <b>{activity.time}</b>
+                      <span>{activity.name}</span>
+                      <small>
+                        {activity.duration} · {formatRupees(activity.cost)}
+                      </small>
+                    </p>
+                  ))}
+                </div>
+              </details>
+            ))}
+          </article>
+        </section>
+      )}
+    </div>
+  );
 }
 
 export function SharePage() {
@@ -523,9 +574,9 @@ export function SharePage() {
   const [pathname, setLocation] = useLocation();
   const [copied, setCopied] = useState(false);
   const isPublic = pathname.includes("/shared/");
-  const link = "musafir.travel/s/goa-adventure";
+  const link = "globetrotter.travel/s/goa-adventure";
   const copyLink = () => { setCopied(true); toast.success("A shareable trip link is ready to paste."); };
-  return <div className="page-stack share-page">{!isPublic && <BackToTrips />}{!isPublic && <TripTabs active="share" />}<section className="share-hero"><div><span className="ticket-label"><Share2 size={15} /> {isPublic ? "Read-only route" : "Share your route"}</span><h1>{isPublic ? <>Goa Adventure<br />is a story worth <em>borrowing.</em></> : <>Your adventure is<br />ready to <em>share.</em></>}</h1><p>{isPublic ? "A read-only route through Mumbai and Goa, shared with enough detail to spark a version of your own." : "Send the route, the day plan, and the cost trail to people who should have a say before the group chat gets noisy."}</p><div className="share-url"><span>{link}</span><button onClick={isPublic ? () => { toast.success("A fresh copy is waiting in your travel desk."); setLocation("/trips/new"); } : copyLink}>{isPublic ? <><Copy size={16} /> Copy this trip</> : copied ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy link</>}</button></div></div><div className="share-pass"><span className="pass-holes" /><img src={brandLogo} alt="Musafir mark" /><span className="eyebrow">Your travel pass</span><h2>{trip.name}</h2><p>{trip.dateRange}</p><div><span>{trip.stops.length} stops</span><span>5 days</span><span>{getAllActivities(trip).length} moments</span></div><strong>GOA / 2026</strong></div></section><RouteConnector label="send the story onward" /><section className="share-preview-grid"><article className="ink-card share-itinerary-preview"><div className="panel-heading"><div><span className="eyebrow">Shared itinerary</span><h3>The route at a glance</h3></div><Route size={20} /></div>{trip.stops.map((stop) => <div key={stop.id}><strong>{stop.city}</strong><span>{stop.dateRange}</span><small>{stop.days.flatMap((day) => day.activities).slice(0, 2).map((activity) => activity.name).join(" · ")}</small></div>)}</article><article className="ink-card share-budget-preview"><div className="panel-heading"><div><span className="eyebrow">Budget snapshot</span><h3>{formatRupees(estimatedCost)}</h3></div><WalletCards size={20} /></div><p>Estimated from the shared activities and travel plan.</p><div className="mini-budget-track"><i style={{ width: `${Math.round((estimatedCost / trip.budget) * 100)}%` }} /></div><strong>{formatRupees(trip.budget - estimatedCost)} room left</strong></article></section>{!isPublic && <section className="share-options"><article className="ink-card"><div className="option-icon teal-icon"><Copy size={20} /></div><div><span className="eyebrow">Public template</span><h3>Let someone make it their own.</h3><p>Visitors can copy this itinerary into a fresh trip and remix it for themselves.</p></div><button className="outlined-action" onClick={() => setLocation(`/shared/${trip.id}`)}>Preview public trip</button></article><article className="ink-card"><div className="option-icon coral-icon"><UserRound size={20} /></div><div><span className="eyebrow">Travel circle</span><h3>Share the rough cut, too.</h3><p>Return to the builder if the route still needs one conversation.</p></div><button className="outlined-action" onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}>Back to edit</button></article></section>}</div>;
+  return <div className="page-stack share-page">{!isPublic && <BackToTrips />}{!isPublic && <TripTabs active="share" />}<section className="share-hero"><div><span className="ticket-label"><Share2 size={15} /> {isPublic ? "Read-only route" : "Share your route"}</span><h1>{isPublic ? <>Goa Adventure<br />is a story worth <em>borrowing.</em></> : <>Your adventure is<br />ready to <em>share.</em></>}</h1><p>{isPublic ? "A read-only route through Mumbai and Goa, shared with enough detail to spark a version of your own." : "Send the route, the day plan, and the cost trail to people who should have a say before the group chat gets noisy."}</p><div className="share-url"><span>{link}</span><button onClick={isPublic ? () => { toast.success("A fresh copy is waiting in your travel desk."); setLocation("/trips/new"); } : copyLink}>{isPublic ? <><Copy size={16} /> Copy this trip</> : copied ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy link</>}</button></div></div><div className="share-pass"><span className="pass-holes" /><img src={brandLogo} alt="GlobeTrotter mark" /><span className="eyebrow">Your travel pass</span><h2>{trip.name}</h2><p>{trip.dateRange}</p><div><span>{trip.stops.length} stops</span><span>5 days</span><span>{getAllActivities(trip).length} moments</span></div><strong>GOA / 2026</strong></div></section><RouteConnector label="send the story onward" /><section className="share-preview-grid"><article className="ink-card share-itinerary-preview"><div className="panel-heading"><div><span className="eyebrow">Shared itinerary</span><h3>The route at a glance</h3></div><Route size={20} /></div>{trip.stops.map((stop) => <div key={stop.id}><strong>{stop.city}</strong><span>{stop.dateRange}</span><small>{stop.days.flatMap((day) => day.activities).slice(0, 2).map((activity) => activity.name).join(" · ")}</small></div>)}</article><article className="ink-card share-budget-preview"><div className="panel-heading"><div><span className="eyebrow">Budget snapshot</span><h3>{formatRupees(estimatedCost)}</h3></div><WalletCards size={20} /></div><p>Estimated from the shared activities and travel plan.</p><div className="mini-budget-track"><i style={{ width: `${Math.round((estimatedCost / trip.budget) * 100)}%` }} /></div><strong>{formatRupees(trip.budget - estimatedCost)} room left</strong></article></section>{!isPublic && <section className="share-options"><article className="ink-card"><div className="option-icon teal-icon"><Copy size={20} /></div><div><span className="eyebrow">Public template</span><h3>Let someone make it their own.</h3><p>Visitors can copy this itinerary into a fresh trip and remix it for themselves.</p></div><button className="outlined-action" onClick={() => setLocation(`/shared/${trip.id}`)}>Preview public trip</button></article><article className="ink-card"><div className="option-icon coral-icon"><UserRound size={20} /></div><div><span className="eyebrow">Travel circle</span><h3>Share the rough cut, too.</h3><p>Return to the builder if the route still needs one conversation.</p></div><button className="outlined-action" onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}>Back to edit</button></article></section>}</div>;
 }
 
 export function ProfileSettingsPage() {

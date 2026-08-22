@@ -37,6 +37,10 @@ export type TripStop = {
   departure: string;
   color: string;
   days: ItineraryDay[];
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  order?: number;
 };
 
 export type Trip = {
@@ -63,6 +67,8 @@ export type City = {
   season: string;
   description: string;
   accent: "coral" | "teal" | "mustard";
+  latitude?: number;
+  longitude?: number;
 };
 
 export type ActivityIdea = Omit<Activity, "id" | "time"> & { icon: string; rating: string };
@@ -88,6 +94,9 @@ export const demoTrip: Trip = {
       arrival: "12 Aug",
       departure: "13 Aug",
       color: "#FFC53D",
+      latitude: 18.922,
+      longitude: 72.8347,
+      address: "Mumbai, Maharashtra, India",
       days: [
         {
           id: "mumbai-day-1",
@@ -120,6 +129,9 @@ export const demoTrip: Trip = {
       arrival: "14 Aug",
       departure: "16 Aug",
       color: "#2CB9AA",
+      latitude: 15.5527,
+      longitude: 73.7517,
+      address: "Baga & Panaji, Goa, India",
       days: [
         {
           id: "goa-day-3",
@@ -156,10 +168,10 @@ export const demoTrip: Trip = {
 };
 
 export const cityCatalog: City[] = [
-  { id: "jaipur", name: "Jaipur", country: "India", region: "Rajasthan", costIndex: "Balanced", popularity: "Loved by culture seekers", season: "Oct–Mar", description: "Terracotta lanes, observatories, palaces, and slow rooftop evenings.", accent: "coral" },
-  { id: "udaipur", name: "Udaipur", country: "India", region: "Rajasthan", costIndex: "A little luxe", popularity: "A favourite for slow days", season: "Sep–Mar", description: "Lake light, palace courtyards, and boat rides made for gentle detours.", accent: "teal" },
-  { id: "gokarna", name: "Gokarna", country: "India", region: "Karnataka", costIndex: "Easy on the wallet", popularity: "Rising beach favourite", season: "Oct–Feb", description: "Cliff walks, quiet beaches, and a softer coastal rhythm.", accent: "mustard" },
-  { id: "bengaluru", name: "Bengaluru", country: "India", region: "Karnataka", costIndex: "Balanced", popularity: "Popular city stop", season: "Oct–Feb", description: "Garden lanes, coffee rooms, and a strong food-and-design scene.", accent: "teal" },
+  { id: "jaipur", name: "Jaipur", country: "India", region: "Rajasthan", costIndex: "Balanced", popularity: "Loved by culture seekers", season: "Oct–Mar", description: "Terracotta lanes, observatories, palaces, and slow rooftop evenings.", accent: "coral", latitude: 26.9124, longitude: 75.7873 },
+  { id: "udaipur", name: "Udaipur", country: "India", region: "Rajasthan", costIndex: "A little luxe", popularity: "A favourite for slow days", season: "Sep–Mar", description: "Lake light, palace courtyards, and boat rides made for gentle detours.", accent: "teal", latitude: 24.5854, longitude: 73.7125 },
+  { id: "gokarna", name: "Gokarna", country: "India", region: "Karnataka", costIndex: "Easy on the wallet", popularity: "Rising beach favourite", season: "Oct–Feb", description: "Cliff walks, quiet beaches, and a softer coastal rhythm.", accent: "mustard", latitude: 14.5479, longitude: 74.3188 },
+  { id: "bengaluru", name: "Bengaluru", country: "India", region: "Karnataka", costIndex: "Balanced", popularity: "Popular city stop", season: "Oct–Feb", description: "Garden lanes, coffee rooms, and a strong food-and-design scene.", accent: "teal", latitude: 12.9716, longitude: 77.5946 },
 ];
 
 export const activityIdeas: ActivityIdea[] = [

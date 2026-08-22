@@ -24,6 +24,7 @@ type PlannerContextValue = {
   duplicateActivity: (dayId: string, activityId: string) => void;
   moveActivity: (sourceDayId: string, activityId: string, targetDayId: string, targetIndex?: number) => void;
   reorderStops: (sourceId: string, targetId: string) => void;
+  reorderStopIndex: (fromIndex: number, toIndex: number) => void;
   addStop: (city: Omit<TripStop, "id" | "days" | "color">) => void;
   removeStop: (stopId: string) => void;
   toggleBuffet: () => void;
@@ -226,6 +227,16 @@ export function TripPlannerProvider({ children }: { children: ReactNode }) {
     },
     reorderStops: (sourceId, targetId) =>
       setTrip((current) => ({ ...current, stops: orderItems(current.stops, sourceId, targetId) })),
+    reorderStopIndex: (fromIndex, toIndex) =>
+      setTrip((current) => {
+        if (fromIndex < 0 || toIndex < 0 || fromIndex >= current.stops.length || toIndex >= current.stops.length) {
+          return current;
+        }
+        const updated = [...current.stops];
+        const [moved] = updated.splice(fromIndex, 1);
+        updated.splice(toIndex, 0, moved);
+        return { ...current, stops: updated };
+      }),
     addStop: (city) => {
       const stopObj = {
         ...city,

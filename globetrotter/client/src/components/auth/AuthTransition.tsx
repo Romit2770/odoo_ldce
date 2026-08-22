@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import musafirLogo from "@/assets/branding/musafir-logo.png";
+import brandLogo from "@/assets/branding/globetrotter-logo.png";
 import { Compass, Sparkles } from "lucide-react";
 
 type AuthTransitionProps = {
@@ -21,11 +21,11 @@ export function AuthTransition({
       <div className="auth-transition-card">
         <div className="auth-transition-stamp">
           <Sparkles size={14} />
-          <span>Musafir Atlas</span>
+          <span>Storybook Atlas</span>
         </div>
 
         <div className="auth-transition-logo-wrap">
-          <img src={musafirLogo} alt="Musafir" className="auth-transition-logo" />
+          <img src={brandLogo} alt="GlobeTrotter" className="auth-transition-logo" />
           <div className="auth-transition-ring" />
           <div className="auth-transition-ring outer" />
         </div>
@@ -43,7 +43,7 @@ export function AuthTransition({
 
         <div className="auth-transition-indicator">
           <Compass size={14} className="spin-slow" />
-          <span>Musafir Travel Desk</span>
+          <span>GlobeTrotter Travel Desk</span>
         </div>
       </div>
     </div>
