@@ -684,16 +684,337 @@ async function generateUniqueShareCode(): Promise<string> {
   return `TRIP${Math.floor(1000 + Math.random() * 9000)}`;
 }
 
+// Helper: Get starter dummy trips covering 2-3 trips per tab (Upcoming, Ongoing, Completed, Draft)
+function getStarterDummyTrips(userId: string): TripDocument[] {
+  const now = new Date();
+  return [
+    // --- UPCOMING (3 trips) ---
+    {
+      id: "goa-adventure",
+      userId,
+      name: "Goa Coastal Expedition",
+      dateRange: "12–16 Aug 2026",
+      duration: "5 days",
+      description: "A coastal expedition across sunlit beaches, Portuguese heritage forts, and seaside shacks.",
+      story: "A coastal expedition across sunlit beaches, Portuguese heritage forts, and seaside shacks.",
+      status: "Upcoming",
+      budget: 25000,
+      estimatedCost: 18500,
+      travelStyle: "Adventure",
+      travelStyles: ["Adventure", "Relaxation"],
+      startLocation: "Mumbai",
+      endLocation: "Goa",
+      stops: [
+        { id: "stop-mumbai", city: "Mumbai", country: "India", region: "Maharashtra", dateRange: "12–13 Aug", arrival: "Wed, 12 Aug", departure: "Thu, 13 Aug", color: "#2CB9AA", days: [] },
+        { id: "stop-goa", city: "Goa", country: "India", region: "Goa", dateRange: "14–16 Aug", arrival: "Fri, 14 Aug", departure: "Sun, 16 Aug", color: "#FF6550", days: [] },
+      ],
+      sharing: { enabled: true, shareCode: "GOA7X2", createdAt: now },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 10),
+      updatedAt: now,
+    },
+    {
+      id: "kashmir-trail",
+      userId,
+      name: "Kashmir Valley Odyssey",
+      dateRange: "10–16 Sep 2026",
+      duration: "7 days",
+      description: "Houseboats on Dal Lake, pine forests of Pahalgam, and high alpine meadows of Gulmarg.",
+      story: "Houseboats on Dal Lake, pine forests of Pahalgam, and high alpine meadows of Gulmarg.",
+      status: "Upcoming",
+      budget: 45000,
+      estimatedCost: 38000,
+      travelStyle: "Nature",
+      travelStyles: ["Nature", "Relaxation"],
+      startLocation: "Srinagar",
+      endLocation: "Pahalgam",
+      stops: [
+        { id: "stop-srinagar", city: "Srinagar", country: "India", region: "Jammu & Kashmir", dateRange: "10–12 Sep", arrival: "Thu, 10 Sep", departure: "Sat, 12 Sep", color: "#2CB9AA", days: [] },
+        { id: "stop-gulmarg", city: "Gulmarg", country: "India", region: "Jammu & Kashmir", dateRange: "12–14 Sep", arrival: "Sat, 12 Sep", departure: "Mon, 14 Sep", color: "#FFC53D", days: [] },
+        { id: "stop-pahalgam", city: "Pahalgam", country: "India", region: "Jammu & Kashmir", dateRange: "14–16 Sep", arrival: "Mon, 14 Sep", departure: "Wed, 16 Sep", color: "#FF6550", days: [] },
+      ],
+      sharing: { enabled: false, shareCode: null },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 20),
+      updatedAt: now,
+    },
+    {
+      id: "himachal-circuit",
+      userId,
+      name: "Himachal Mountain Circuit",
+      dateRange: "05–12 Oct 2026",
+      duration: "8 days",
+      description: "High mountain roads through Rohtang, remote Spiti monasteries, and silent river valleys.",
+      story: "High mountain roads through Rohtang, remote Spiti monasteries, and silent river valleys.",
+      status: "Upcoming",
+      budget: 38000,
+      estimatedCost: 31000,
+      travelStyle: "Adventure",
+      travelStyles: ["Adventure", "Culture"],
+      startLocation: "Manali",
+      endLocation: "Kaza",
+      stops: [
+        { id: "stop-manali", city: "Manali", country: "India", region: "Himachal Pradesh", dateRange: "05–07 Oct", arrival: "Mon, 05 Oct", departure: "Wed, 07 Oct", color: "#2CB9AA", days: [] },
+        { id: "stop-spiti", city: "Spiti", country: "India", region: "Himachal Pradesh", dateRange: "07–10 Oct", arrival: "Wed, 07 Oct", departure: "Sat, 10 Oct", color: "#FF6550", days: [] },
+        { id: "stop-kaza", city: "Kaza", country: "India", region: "Himachal Pradesh", dateRange: "10–12 Oct", arrival: "Sat, 10 Oct", departure: "Mon, 12 Oct", color: "#FFC53D", days: [] },
+      ],
+      sharing: { enabled: false, shareCode: null },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 30),
+      updatedAt: now,
+    },
+
+    // --- ONGOING (3 trips) ---
+    {
+      id: "kerala-backwaters",
+      userId,
+      name: "Kerala Backwaters & Tea Hills",
+      dateRange: "20–26 Aug 2026",
+      duration: "7 days",
+      description: "Cruising palm-fringed lagoons in Alleppey and waking up above foggy tea slopes in Munnar.",
+      story: "Cruising palm-fringed lagoons in Alleppey and waking up above foggy tea slopes in Munnar.",
+      status: "Ongoing",
+      budget: 32000,
+      estimatedCost: 29500,
+      travelStyle: "Relaxation",
+      travelStyles: ["Relaxation", "Nature"],
+      startLocation: "Kochi",
+      endLocation: "Alleppey",
+      stops: [
+        { id: "stop-kochi", city: "Kochi", country: "India", region: "Kerala", dateRange: "20–22 Aug", arrival: "Thu, 20 Aug", departure: "Sat, 22 Aug", color: "#2CB9AA", days: [] },
+        { id: "stop-munnar", city: "Munnar", country: "India", region: "Kerala", dateRange: "22–24 Aug", arrival: "Sat, 22 Aug", departure: "Mon, 24 Aug", color: "#FFC53D", days: [] },
+        { id: "stop-alleppey", city: "Alleppey", country: "India", region: "Kerala", dateRange: "24–26 Aug", arrival: "Mon, 24 Aug", departure: "Wed, 26 Aug", color: "#FF6550", days: [] },
+      ],
+      sharing: { enabled: false, shareCode: null },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 40),
+      updatedAt: now,
+    },
+    {
+      id: "golden-triangle",
+      userId,
+      name: "Golden Triangle Express",
+      dateRange: "22–27 Aug 2026",
+      duration: "6 days",
+      description: "Delhi's Old Quarter, Agra's marble monuments, and Jaipur's royal sandstone palaces.",
+      story: "Delhi's Old Quarter, Agra's marble monuments, and Jaipur's royal sandstone palaces.",
+      status: "Ongoing",
+      budget: 28000,
+      estimatedCost: 24000,
+      travelStyle: "Culture",
+      travelStyles: ["Culture", "Food"],
+      startLocation: "Delhi",
+      endLocation: "Jaipur",
+      stops: [
+        { id: "stop-delhi", city: "Delhi", country: "India", region: "Delhi", dateRange: "22–24 Aug", arrival: "Sat, 22 Aug", departure: "Mon, 24 Aug", color: "#2CB9AA", days: [] },
+        { id: "stop-agra", city: "Agra", country: "India", region: "Uttar Pradesh", dateRange: "24–25 Aug", arrival: "Mon, 24 Aug", departure: "Tue, 25 Aug", color: "#FFC53D", days: [] },
+        { id: "stop-jaipur", city: "Jaipur", country: "India", region: "Rajasthan", dateRange: "25–27 Aug", arrival: "Tue, 25 Aug", departure: "Thu, 27 Aug", color: "#FF6550", days: [] },
+      ],
+      sharing: { enabled: false, shareCode: null },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 50),
+      updatedAt: now,
+    },
+    {
+      id: "western-ghats-monsoon",
+      userId,
+      name: "Western Ghats Monsoon Trail",
+      dateRange: "21–25 Aug 2026",
+      duration: "5 days",
+      description: "Lush green ridges, thunderous waterfalls, and mist-covered mountain viewpoints.",
+      story: "Lush green ridges, thunderous waterfalls, and mist-covered mountain viewpoints.",
+      status: "Ongoing",
+      budget: 22000,
+      estimatedCost: 19000,
+      travelStyle: "Nature",
+      travelStyles: ["Nature", "Adventure"],
+      startLocation: "Pune",
+      endLocation: "Lonavala",
+      stops: [
+        { id: "stop-pune", city: "Pune", country: "India", region: "Maharashtra", dateRange: "21–22 Aug", arrival: "Fri, 21 Aug", departure: "Sat, 22 Aug", color: "#2CB9AA", days: [] },
+        { id: "stop-mahabaleshwar", city: "Mahabaleshwar", country: "India", region: "Maharashtra", dateRange: "22–24 Aug", arrival: "Sat, 22 Aug", departure: "Mon, 24 Aug", color: "#FFC53D", days: [] },
+        { id: "stop-lonavala", city: "Lonavala", country: "India", region: "Maharashtra", dateRange: "24–25 Aug", arrival: "Mon, 24 Aug", departure: "Tue, 25 Aug", color: "#FF6550", days: [] },
+      ],
+      sharing: { enabled: false, shareCode: null },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 60),
+      updatedAt: now,
+    },
+
+    // --- COMPLETED (3 trips) ---
+    {
+      id: "rajasthan-heritage",
+      userId,
+      name: "Royal Rajasthan Heritage",
+      dateRange: "14–21 Jun 2026",
+      duration: "8 days",
+      description: "Wandering through the Blue City of Jodhpur, City Palace in Jaipur, and Lake Pichola in Udaipur.",
+      story: "Wandering through the Blue City of Jodhpur, City Palace in Jaipur, and Lake Pichola in Udaipur.",
+      status: "Completed",
+      budget: 52000,
+      estimatedCost: 49800,
+      travelStyle: "Culture",
+      travelStyles: ["Culture", "Luxury"],
+      startLocation: "Jaipur",
+      endLocation: "Udaipur",
+      stops: [
+        { id: "stop-jaipur", city: "Jaipur", country: "India", region: "Rajasthan", dateRange: "14–16 Jun", arrival: "Sun, 14 Jun", departure: "Tue, 16 Jun", color: "#FF6550", days: [] },
+        { id: "stop-jodhpur", city: "Jodhpur", country: "India", region: "Rajasthan", dateRange: "16–18 Jun", arrival: "Tue, 16 Jun", departure: "Thu, 18 Jun", color: "#2CB9AA", days: [] },
+        { id: "stop-udaipur", city: "Udaipur", country: "India", region: "Rajasthan", dateRange: "18–21 Jun", arrival: "Thu, 18 Jun", departure: "Sun, 21 Jun", color: "#FFC53D", days: [] },
+      ],
+      sharing: { enabled: false, shareCode: null },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 120),
+      updatedAt: now,
+    },
+    {
+      id: "varanasi-notebook",
+      userId,
+      name: "Varanasi & Sarnath Notebook",
+      dateRange: "02–06 May 2026",
+      duration: "5 days",
+      description: "Dawn boat rides along the ghats, evening Ganga Aarti, and ancient stupas of Sarnath.",
+      story: "Dawn boat rides along the ghats, evening Ganga Aarti, and ancient stupas of Sarnath.",
+      status: "Completed",
+      budget: 18000,
+      estimatedCost: 16500,
+      travelStyle: "Culture",
+      travelStyles: ["Culture", "Food"],
+      startLocation: "Varanasi",
+      endLocation: "Sarnath",
+      stops: [
+        { id: "stop-varanasi", city: "Varanasi", country: "India", region: "Uttar Pradesh", dateRange: "02–05 May", arrival: "Sat, 02 May", departure: "Tue, 05 May", color: "#FF6550", days: [] },
+        { id: "stop-sarnath", city: "Sarnath", country: "India", region: "Uttar Pradesh", dateRange: "05–06 May", arrival: "Tue, 05 May", departure: "Wed, 06 May", color: "#2CB9AA", days: [] },
+      ],
+      sharing: { enabled: false, shareCode: null },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 180),
+      updatedAt: now,
+    },
+    {
+      id: "andaman-escape",
+      userId,
+      name: "Andaman Tropical Waters",
+      dateRange: "10–17 Jan 2026",
+      duration: "8 days",
+      description: "Radhanagar Beach sunsets, scuba diving in turquoise reefs, and peaceful cycling on Neil Island.",
+      story: "Radhanagar Beach sunsets, scuba diving in turquoise reefs, and peaceful cycling on Neil Island.",
+      status: "Completed",
+      budget: 64000,
+      estimatedCost: 59000,
+      travelStyle: "Relaxation",
+      travelStyles: ["Relaxation", "Adventure"],
+      startLocation: "Port Blair",
+      endLocation: "Neil Island",
+      stops: [
+        { id: "stop-portblair", city: "Port Blair", country: "India", region: "Andaman", dateRange: "10–12 Jan", arrival: "Sat, 10 Jan", departure: "Mon, 12 Jan", color: "#2CB9AA", days: [] },
+        { id: "stop-havelock", city: "Havelock", country: "India", region: "Andaman", dateRange: "12–15 Jan", arrival: "Mon, 12 Jan", departure: "Thu, 15 Jan", color: "#FF6550", days: [] },
+        { id: "stop-neil", city: "Neil Island", country: "India", region: "Andaman", dateRange: "15–17 Jan", arrival: "Thu, 15 Jan", departure: "Sat, 17 Jan", color: "#FFC53D", days: [] },
+      ],
+      sharing: { enabled: false, shareCode: null },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 240),
+      updatedAt: now,
+    },
+
+    // --- DRAFT (3 trips) ---
+    {
+      id: "meghalaya-roots",
+      userId,
+      name: "Meghalaya Living Roots",
+      dateRange: "15–20 Nov 2026",
+      duration: "6 days",
+      description: "Exploring living root bridges in Nongriat, crystal waters of Dawki, and misty waterfalls of Cherrapunji.",
+      story: "Exploring living root bridges in Nongriat, crystal waters of Dawki, and misty waterfalls of Cherrapunji.",
+      status: "Draft",
+      budget: 30000,
+      estimatedCost: 26000,
+      travelStyle: "Adventure",
+      travelStyles: ["Adventure", "Nature"],
+      startLocation: "Guwahati",
+      endLocation: "Cherrapunji",
+      stops: [
+        { id: "stop-guwahati", city: "Guwahati", country: "India", region: "Assam", dateRange: "15–16 Nov", arrival: "Sun, 15 Nov", departure: "Mon, 16 Nov", color: "#2CB9AA", days: [] },
+        { id: "stop-shillong", city: "Shillong", country: "India", region: "Meghalaya", dateRange: "16–18 Nov", arrival: "Mon, 16 Nov", departure: "Wed, 18 Nov", color: "#FFC53D", days: [] },
+        { id: "stop-cherrapunji", city: "Cherrapunji", country: "India", region: "Meghalaya", dateRange: "18–20 Nov", arrival: "Wed, 18 Nov", departure: "Fri, 20 Nov", color: "#FF6550", days: [] },
+      ],
+      sharing: { enabled: false, shareCode: null },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 15),
+      updatedAt: now,
+    },
+    {
+      id: "ladakh-stargazer",
+      userId,
+      name: "Ladakh High Altitude Pass",
+      dateRange: "18–25 Dec 2026",
+      duration: "8 days",
+      description: "Crossing Khardung La, camel safari in Nubra sand dunes, and sleeping under the Milky Way at Pangong Tso.",
+      story: "Crossing Khardung La, camel safari in Nubra sand dunes, and sleeping under the Milky Way at Pangong Tso.",
+      status: "Draft",
+      budget: 55000,
+      estimatedCost: 48000,
+      travelStyle: "Adventure",
+      travelStyles: ["Adventure", "Nature"],
+      startLocation: "Leh",
+      endLocation: "Pangong",
+      stops: [
+        { id: "stop-leh", city: "Leh", country: "India", region: "Ladakh", dateRange: "18–20 Dec", arrival: "Fri, 18 Dec", departure: "Sun, 20 Dec", color: "#2CB9AA", days: [] },
+        { id: "stop-nubra", city: "Nubra Valley", country: "India", region: "Ladakh", dateRange: "20–22 Dec", arrival: "Sun, 20 Dec", departure: "Tue, 22 Dec", color: "#FF6550", days: [] },
+        { id: "stop-pangong", city: "Pangong Tso", country: "India", region: "Ladakh", dateRange: "22–25 Dec", arrival: "Tue, 22 Dec", departure: "Fri, 25 Dec", color: "#FFC53D", days: [] },
+      ],
+      sharing: { enabled: false, shareCode: null },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8),
+      updatedAt: now,
+    },
+    {
+      id: "coorg-coffee-hills",
+      userId,
+      name: "Coorg & Kabini Wildlife",
+      dateRange: "08–12 Jan 2027",
+      duration: "5 days",
+      description: "Aromatic coffee estate retreats in Madikeri and dusk boat safaris for elephants in Nagarhole.",
+      story: "Aromatic coffee estate retreats in Madikeri and dusk boat safaris for elephants in Nagarhole.",
+      status: "Draft",
+      budget: 24000,
+      estimatedCost: 21000,
+      travelStyle: "Nature",
+      travelStyles: ["Nature", "Relaxation"],
+      startLocation: "Bangalore",
+      endLocation: "Coorg",
+      stops: [
+        { id: "stop-bangalore", city: "Bangalore", country: "India", region: "Karnataka", dateRange: "08–09 Jan", arrival: "Fri, 08 Jan", departure: "Sat, 09 Jan", color: "#2CB9AA", days: [] },
+        { id: "stop-mysore", city: "Mysore", country: "India", region: "Karnataka", dateRange: "09–10 Jan", arrival: "Sat, 09 Jan", departure: "Sun, 10 Jan", color: "#FFC53D", days: [] },
+        { id: "stop-coorg", city: "Coorg", country: "India", region: "Karnataka", dateRange: "10–12 Jan", arrival: "Sun, 10 Jan", departure: "Tue, 12 Jan", color: "#FF6550", days: [] },
+      ],
+      sharing: { enabled: false, shareCode: null },
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5),
+      updatedAt: now,
+    },
+  ];
+}
+
 // 7.1 GET all trips for the authenticated user
 apiRouter.get("/trips", requireAuth, async (req: Request, res: Response) => {
   try {
     const user = (req as any).user as UserDocument;
     const tripsCol = await getTripsCollection();
 
-    const trips = await tripsCol
+    let trips = await tripsCol
       .find({ userId: user.id })
       .sort({ createdAt: -1 })
       .toArray();
+
+    // Auto-seed 2-3 starter trips for each tab if user has < 4 trips
+    if (trips.length < 4) {
+      const dummyTrips = getStarterDummyTrips(user.id);
+      for (const dt of dummyTrips) {
+        const uniqueId = `${dt.id}_${user.id}`;
+        const exists = trips.some((t) => t.id === uniqueId || t.id === dt.id);
+        if (!exists) {
+          const tripToInsert = { ...dt, id: uniqueId, userId: user.id };
+          await tripsCol.updateOne(
+            { id: uniqueId, userId: user.id },
+            { $set: tripToInsert },
+            { upsert: true }
+          );
+        }
+      }
+      trips = await tripsCol
+        .find({ userId: user.id })
+        .sort({ createdAt: -1 })
+        .toArray();
+    }
 
     res.json(trips);
   } catch (error) {

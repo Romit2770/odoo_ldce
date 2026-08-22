@@ -74,10 +74,27 @@ export function TripsListView() {
     }
   };
 
+  // Normalize status for tab matching
+  const normalizeStatus = (status?: string): "Upcoming" | "Ongoing" | "Completed" | "Draft" => {
+    const s = (status || "").toLowerCase();
+    if (s === "planned" || s === "upcoming") return "Upcoming";
+    if (s === "ongoing" || s === "active") return "Ongoing";
+    if (s === "completed") return "Completed";
+    if (s === "draft") return "Draft";
+    return "Upcoming";
+  };
+
+  // Tab counts
+  const getTabCount = (tab: TripStatus | "All") => {
+    if (tab === "All") return trips.length;
+    return trips.filter((t) => normalizeStatus(t.status) === tab).length;
+  };
+
   // Filtered trips
   const filtered = trips.filter((t) => {
     const routeString = t.stops?.map((s) => s.city).join(" → ") || "";
-    const matchesFilter = filter === "All" || t.status === filter;
+    const normalized = normalizeStatus(t.status);
+    const matchesFilter = filter === "All" || normalized === filter;
     const matchesQuery =
       query.trim() === "" ||
       t.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -119,16 +136,19 @@ export function TripsListView() {
           />
         </label>
         <div className="filter-chips">
-          {(["All", "Upcoming", "Ongoing", "Completed", "Draft"] as const).map((item) => (
-            <button
-              key={item}
-              type="button"
-              className={filter === item ? "active" : ""}
-              onClick={() => setFilter(item)}
-            >
-              {item}
-            </button>
-          ))}
+          {(["All", "Upcoming", "Ongoing", "Completed", "Draft"] as const).map((item) => {
+            const count = getTabCount(item);
+            return (
+              <button
+                key={item}
+                type="button"
+                className={filter === item ? "active" : ""}
+                onClick={() => setFilter(item)}
+              >
+                {item} <span style={{ opacity: 0.85, fontSize: "0.9em", fontWeight: 700 }}>({count})</span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
