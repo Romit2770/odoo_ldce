@@ -15,6 +15,7 @@ import {
   type SavedDestinationDocument,
   type TripPhotoDocument,
 } from "../db/mongodb.js";
+import { generateDiscoverRecommendations } from "../services/geminiService.js";
 
 export const apiRouter = Router();
 
@@ -475,5 +476,31 @@ apiRouter.get("/photos/:photoId", requireAuth, async (req: Request, res: Respons
   } catch (error) {
     console.error("GET /api/photos/:photoId error", error);
     res.status(500).json({ error: "Failed to serve photo." });
+  }
+});
+
+// -------------------------------------------------------------
+// 6. Gemini AI Discover Recommendations API
+// -------------------------------------------------------------
+apiRouter.post("/discover/recommendations", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user as UserDocument;
+    const { query, mood } = req.body;
+
+    const destCol = await getSavedDestinationsCollection();
+    const saved = await destCol.find({ userId: user.id }).toArray();
+    const savedNames = saved.map((s) => s.city || s.name);
+
+    const recommendations = await generateDiscoverRecommendations({
+      query,
+      mood,
+      preferences: user.preferences,
+      savedDestinations: savedNames,
+    });
+
+    res.json({ success: true, recommendations });
+  } catch (error) {
+    console.error("POST /api/discover/recommendations error", error);
+    res.status(500).json({ error: "Failed to generate recommendations." });
   }
 });

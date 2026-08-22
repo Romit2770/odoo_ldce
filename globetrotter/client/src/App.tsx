@@ -17,6 +17,8 @@ import {
   BudgetPage,
   DashboardPage,
   DiscoverPage,
+  DestinationsPage,
+  ActivitiesPage,
   MapCalendarPage,
   ProfileSettingsPage,
   SharePage,
@@ -57,8 +59,8 @@ function ProtectedProductRoutes() {
         <Route path="/trips/:tripId/map" component={MapCalendarPage} />
         <Route path="/trips/:tripId/share" component={SharePage} />
         <Route path="/discover" component={DiscoverPage} />
-        <Route path="/destinations" component={DiscoverPage} />
-        <Route path="/activities" component={DiscoverPage} />
+        <Route path="/destinations" component={DestinationsPage} />
+        <Route path="/activities" component={ActivitiesPage} />
         <Route path="/profile" component={ProfileSettingsPage} />
         <Route path="/settings" component={ProfileSettingsPage} />
         <Route path="/shared/:shareId" component={SharePage} />

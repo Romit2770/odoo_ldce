@@ -13,6 +13,8 @@ import { useTripPlanner } from "@/contexts/TripPlannerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { extractFirstName } from "@/lib/nameFormatter";
 import { ProfileSettingsView } from "@/components/profile/ProfileSettingsView";
+import { DiscoverFeed } from "@/components/discover/DiscoverFeed";
+import { DestinationsManager } from "@/components/destinations/DestinationsManager";
 import { goaPhotoStory } from "@/domain/destinationPhotoStories";
 import { activityIdeas, cityCatalog, sampleTripSummaries, type ActivityIdea, type TripStatus } from "@/domain/trip";
 import { formatRupees, getAllActivities, getAllDays, getEstimatedCost, getExpenseBreakdown, getPlanningProgress } from "@/lib/tripMath";
@@ -375,16 +377,151 @@ export function TripsPage() {
 }
 
 export function DiscoverPage() {
-  const { addActivity, addStop, savedDestinationIds, toggleSavedDestination, trip } = useTripPlanner();
-  const [pathname, setLocation] = useLocation();
+  return <DiscoverFeed />;
+}
+
+export function DestinationsPage() {
+  return <DestinationsManager />;
+}
+
+export function ActivitiesPage() {
+  const { addActivity, trip } = useTripPlanner();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"All" | ActivityIdea["category"]>("All");
   const [picker, setPicker] = useState<ActivityIdea | null>(null);
-  const pageMode = pathname === "/destinations" ? "destinations" : pathname === "/activities" ? "activities" : "discover";
-  const activities = activityIdeas.filter((idea) => (category === "All" || idea.category === category) && `${idea.name} ${idea.description}`.toLowerCase().includes(query.toLowerCase()));
-  const addCity = (cityName: string) => { const city = cityCatalog.find((item) => item.name === cityName); if (!city) return; addStop({ city: city.name, country: city.country, region: city.region, dateRange: "17–18 Aug", arrival: "17 Aug", departure: "18 Aug" }); toast.success(`${city.name} was added as a new stop.`); };
-  const title = pageMode === "activities" ? ["Find things to do", "Then make them yours."] : pageMode === "destinations" ? ["Where do you", "want to go next?"] : ["Pin something", "unexpected."];
-  return <div className="page-stack discover-page"><PageIntro eyebrow={pageMode === "activities" ? "Activity discovery" : pageMode === "destinations" ? "Destination discovery" : "Discover"} title={title[0]} accent={title[1]} description="Search places and moments that can become real pieces of your next itinerary." action={<button className="outlined-action" onClick={() => setLocation("/trips/new")}><PlaneTakeoff size={17} /> Start a route</button>} /><section className="discovery-controls"><label className="search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={pageMode === "destinations" ? "Where do you want to go?" : "Find things to do"} aria-label="Search discoveries" /></label><div className="filter-chips">{(["All", "Adventure", "Culture", "Food", "Nature"] as const).map((item) => <button key={item} className={category === item ? "active" : ""} onClick={() => setCategory(item)}>{item}</button>)}</div></section><RouteConnector label="follow the pins" />{pageMode !== "activities" && <section className="city-discovery-grid">{cityCatalog.filter((city) => city.name.toLowerCase().includes(query.toLowerCase()) || city.region.toLowerCase().includes(query.toLowerCase())).map((city) => <article className={`city-discovery-card ${city.accent}`} key={city.id}><div className="city-card-top"><span className="ticket-label"><MapPin size={13} /> {city.region}</span><button className={savedDestinationIds.includes(city.id) ? "is-saved" : ""} aria-label={`${savedDestinationIds.includes(city.id) ? "Remove" : "Save"} ${city.name}`} onClick={() => { const alreadySaved = savedDestinationIds.includes(city.id); toggleSavedDestination(city.id); toast.success(alreadySaved ? `${city.name} removed from your saved places.` : `${city.name} saved to your places.`); }}><Heart size={16} fill={savedDestinationIds.includes(city.id) ? "currentColor" : "none"} /></button></div><div><h2>{city.name}</h2><p>{city.country} · {city.season}</p></div><p className="city-description">{city.description}</p><div className="city-card-bottom"><span>{city.costIndex}</span><button onClick={() => addCity(city.name)}>Add to trip <Plus size={15} /></button></div></article>)}</section>}{pageMode !== "activities" && <p className="saved-places-note">{savedDestinationIds.length} places pinned in your travel wish list.</p>}{pageMode !== "destinations" && <section className="activity-discovery-section"><div className="section-heading"><div><span className="eyebrow">Small adventures</span><h2>Leave room for the good stuff.</h2></div><span className="soft-count">{activities.length} finds</span></div><div className="activity-discovery-grid">{activities.map((idea) => <article className="activity-discovery-card" key={idea.name}><span className="idea-emoji">{idea.icon}</span><div className="activity-discovery-main"><span className="eyebrow">{idea.category} · {idea.rating} ★</span><h3>{idea.name}</h3><p>{idea.description}</p><div><span><MapPin size={13} /> {idea.location}</span><span><CalendarDays size={13} /> {idea.duration}</span><b>{formatRupees(idea.cost)}</b></div></div><button className="add-circle" onClick={() => setPicker(idea)} aria-label={`Add ${idea.name} to itinerary`}><Plus size={18} /></button></article>)}</div>{activities.length === 0 && <EmptyJournal title="Nothing here yet." body="Try another category, or let the next place surprise you." actionLabel="Discover all" actionPath="/discover" />}</section>}{picker && <div className="modal-backdrop" role="presentation"><section className="travel-modal" role="dialog" aria-modal="true" aria-labelledby="activity-picker-title"><button className="modal-close" onClick={() => setPicker(null)} aria-label="Close activity picker">×</button><span className="ticket-label"><Plus size={13} /> Add to itinerary</span><h2 id="activity-picker-title">Place {picker.name} in the story.</h2><p>Choose where it belongs. Your budget, calendar, and itinerary will update together.</p><div className="picker-day-list">{trip.stops.flatMap((stop) => stop.days.map((day) => <button key={day.id} onClick={() => { addActivity(stop.id, day.id, picker); setPicker(null); toast.success(`${picker.name} added to Day ${day.dayNumber}.`); }}><span>{day.city}</span><strong>Day {day.dayNumber} · {day.date}</strong><ChevronRight size={17} /></button>))}</div></section></div>}</div>;
+
+  const activities = activityIdeas.filter(
+    (idea) =>
+      (category === "All" || idea.category === category) &&
+      `${idea.name} ${idea.description}`.toLowerCase().includes(query.toLowerCase())
+  );
+
+  return (
+    <div className="page-stack discover-page">
+      <PageIntro
+        eyebrow="Activity Discovery"
+        title="Find things to do,"
+        accent="then make them yours."
+        description="Search curated moments that fit your itinerary, from street food walks to sunset viewpoints."
+        action={
+          <span className="ticket-label">
+            <Sparkles size={14} /> {activities.length} experiences
+          </span>
+        }
+      />
+      <section className="discovery-controls">
+        <label className="search-field">
+          <Search size={17} />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search activities or experiences..."
+            aria-label="Search activities"
+          />
+        </label>
+        <div className="filter-chips">
+          {(["All", "Adventure", "Culture", "Food", "Nature"] as const).map((item) => (
+            <button
+              key={item}
+              className={category === item ? "active" : ""}
+              onClick={() => setCategory(item)}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </section>
+      <RouteConnector label="follow the moments" />
+      <section className="activity-discovery-section">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">Curated moments</span>
+            <h2>Leave room for the good stuff.</h2>
+          </div>
+          <span className="soft-count">{activities.length} finds</span>
+        </div>
+        <div className="activity-discovery-grid">
+          {activities.map((idea) => (
+            <article className="activity-discovery-card" key={idea.name}>
+              <span className="idea-emoji">{idea.icon}</span>
+              <div className="activity-discovery-main">
+                <span className="eyebrow">
+                  {idea.category} · {idea.rating} ★
+                </span>
+                <h3>{idea.name}</h3>
+                <p>{idea.description}</p>
+                <div>
+                  <span>
+                    <MapPin size={13} /> {idea.location}
+                  </span>
+                  <span>
+                    <CalendarDays size={13} /> {idea.duration}
+                  </span>
+                  <b>{formatRupees(idea.cost)}</b>
+                </div>
+              </div>
+              <button
+                className="add-circle"
+                onClick={() => setPicker(idea)}
+                aria-label={`Add ${idea.name} to itinerary`}
+              >
+                <Plus size={18} />
+              </button>
+            </article>
+          ))}
+        </div>
+        {activities.length === 0 && (
+          <EmptyJournal
+            title="Nothing here yet."
+            body="Try another category, or let the next place surprise you."
+            actionLabel="Discover all"
+            actionPath="/activities"
+          />
+        )}
+      </section>
+      {picker && (
+        <div className="modal-backdrop" role="presentation">
+          <section className="travel-modal" role="dialog" aria-modal="true">
+            <button
+              className="modal-close"
+              onClick={() => setPicker(null)}
+              aria-label="Close activity picker"
+            >
+              ×
+            </button>
+            <span className="ticket-label">
+              <Plus size={13} /> Add to itinerary
+            </span>
+            <h2>Place {picker.name} in the story.</h2>
+            <p>
+              Choose where it belongs. Your budget, calendar, and itinerary will update
+              together.
+            </p>
+            <div className="picker-day-list">
+              {trip.stops.flatMap((stop) =>
+                stop.days.map((day) => (
+                  <button
+                    key={day.id}
+                    onClick={() => {
+                      addActivity(stop.id, day.id, picker);
+                      setPicker(null);
+                      toast.success(`${picker.name} added to Day ${day.dayNumber}.`);
+                    }}
+                  >
+                    <span>{day.city}</span>
+                    <strong>
+                      Day {day.dayNumber} · {day.date}
+                    </strong>
+                    <ChevronRight size={17} />
+                  </button>
+                ))
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function LegacyTripOverviewPage() {
