@@ -46,3 +46,13 @@ export const goaPhotoStory: DestinationPhotoStory = {
     { id: "palms", src: goaPalms, alt: "Goa palms around a quiet tropical shoreline", title: "Palm Cove", category: "A Little Escape", source: "Unsplash", size: "wide" },
   ],
 };
+
+export function getPlaceImage(slugOrKey: string): string {
+  const norm = (slugOrKey || "").toLowerCase().trim();
+  if (norm.includes("baga")) return goaRealBeach;
+  if (norm.includes("palolem")) return palolemBeach;
+  if (norm.includes("aguada")) return fortAguada;
+  if (norm.includes("coast") || norm.includes("lookout")) return goaCoast;
+  if (norm.includes("palm") || norm.includes("cove")) return goaPalms;
+  return goaRealBeach;
+}

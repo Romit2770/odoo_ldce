@@ -32,6 +32,7 @@ import { RegisterPage } from "./pages/auth/RegisterPage";
 import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
 import { OnboardingPage } from "./pages/auth/OnboardingPage";
 import { PublicSharePage } from "@/components/trips/PublicSharePage";
+import { PlaceDetailPage } from "./pages/PlaceDetailPage";
 import { Redirect, Route, Switch } from "wouter";
 
 function ProtectedProductRoutes() {
@@ -59,6 +60,7 @@ function ProtectedProductRoutes() {
         <Route path="/trips/:tripId/budget" component={BudgetPage} />
         <Route path="/trips/:tripId/map" component={MapCalendarPage} />
         <Route path="/trips/:tripId/share" component={SharePage} />
+        <Route path="/places/:slug" component={PlaceDetailPage} />
         <Route path="/discover" component={DiscoverPage} />
         <Route path="/destinations" component={DestinationsPage} />
         <Route path="/activities" component={ActivitiesPage} />

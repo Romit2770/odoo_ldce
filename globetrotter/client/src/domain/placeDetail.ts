@@ -1,0 +1,30 @@
+export type PlaceDetail = {
+  placeKey: string;
+  slug: string;
+  name: string;
+  tagline: string;
+  category: string;
+  city: string;
+  state: string;
+  country: string;
+  latitude?: number;
+  longitude?: number;
+  imageUrl?: string;
+  about: string;
+  whyVisit: string[];
+  highlights: string[];
+  famousFor: string[];
+  food: string[];
+  activities: string[];
+  nearbyPlaces: Array<{
+    name: string;
+    slug: string;
+    distance?: string;
+    description?: string;
+  }>;
+  bestTimeToVisit: string;
+  recommendedDuration: string;
+  travelTips: string[];
+  budgetLevel: string;
+  source?: "gemini" | "curated";
+};

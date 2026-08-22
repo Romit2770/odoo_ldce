@@ -16,8 +16,11 @@ import {
   type SavedDestinationDocument,
   type TripPhotoDocument,
   type TripDocument,
+  type PlaceDetailDocument,
+  getPlaceDetailsCollection,
 } from "../db/mongodb.js";
 import { generateDiscoverRecommendations } from "../services/geminiService.js";
+import { getOrGeneratePlaceDetail } from "../services/geminiPlaceService.js";
 
 export const apiRouter = Router();
 
@@ -659,6 +662,22 @@ apiRouter.post("/discover/recommendations", requireAuth, async (req: Request, re
   } catch (error) {
     console.error("POST /api/discover/recommendations error", error);
     res.status(500).json({ error: "Failed to generate recommendations." });
+  }
+});
+
+// 6.2 Destination Place Detail API (with MongoDB caching & Gemini AI)
+apiRouter.get("/places/:slug", async (req: Request, res: Response) => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return res.status(400).json({ error: "Place identifier is required." });
+    }
+
+    const placeDetail = await getOrGeneratePlaceDetail(slug);
+    res.json(placeDetail);
+  } catch (error) {
+    console.error(`GET /api/places/${req.params.slug} error`, error);
+    res.status(500).json({ error: "Failed to load place details." });
   }
 });
 

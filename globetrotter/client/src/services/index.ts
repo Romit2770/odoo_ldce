@@ -8,4 +8,5 @@ export * from "./api/sharing";
 export * from "./api/profile";
 export * from "./api/notifications";
 export * from "./api/admin";
+export * from "./api/placeService";
 export * from "./auth/authService";

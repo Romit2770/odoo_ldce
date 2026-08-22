@@ -98,6 +98,40 @@ export type TripDocument = {
   updatedAt: Date;
 };
 
+export type PlaceDetailDocument = {
+  _id?: ObjectId;
+  placeKey: string;
+  slug: string;
+  name: string;
+  tagline: string;
+  category: string;
+  city: string;
+  state: string;
+  country: string;
+  latitude?: number;
+  longitude?: number;
+  imageUrl?: string;
+  about: string;
+  whyVisit: string[];
+  highlights: string[];
+  famousFor: string[];
+  food: string[];
+  activities: string[];
+  nearbyPlaces: Array<{
+    name: string;
+    slug: string;
+    distance?: string;
+    description?: string;
+  }>;
+  bestTimeToVisit: string;
+  recommendedDuration: string;
+  travelTips: string[];
+  budgetLevel: string;
+  source: "gemini" | "curated";
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 let client: MongoClient | null = null;
 let db: Db | null = null;
 
@@ -128,6 +162,8 @@ export async function connectToDatabase(): Promise<{ db: Db; client: MongoClient
     await db.collection("trips").createIndex({ id: 1 }, { unique: true });
     await db.collection("trips").createIndex({ userId: 1 });
     await db.collection("trips").createIndex({ "sharing.shareCode": 1 }, { sparse: true });
+    await db.collection("place_details").createIndex({ slug: 1 }, { unique: true });
+    await db.collection("place_details").createIndex({ placeKey: 1 });
 
     return { db, client };
   } catch (error) {
@@ -154,4 +190,9 @@ export async function getTripPhotosCollection(): Promise<Collection<TripPhotoDoc
 export async function getTripsCollection(): Promise<Collection<TripDocument>> {
   const { db } = await connectToDatabase();
   return db.collection<TripDocument>("trips");
+}
+
+export async function getPlaceDetailsCollection(): Promise<Collection<PlaceDetailDocument>> {
+  const { db } = await connectToDatabase();
+  return db.collection<PlaceDetailDocument>("place_details");
 }
