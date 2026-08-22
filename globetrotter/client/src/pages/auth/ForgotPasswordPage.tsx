@@ -7,7 +7,7 @@ import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, ArrowRight, CheckCircle2, Compass, Mail, MapPin } from "lucide-react";
 import { toast } from "sonner";
-import brandLogo from "@/assets/branding/globetrotter-logo.png";
+import { MusafirBrand } from "@/components/brand/MusafirBrand";
 import HERO_ART from "@/assets/illustrations/globetrotter-hero-atlas.png";
 
 export function ForgotPasswordPage() {
@@ -75,22 +75,12 @@ export function ForgotPasswordPage() {
         {/* Right Column: Recovery Card */}
         <section className="auth-form-pane">
           <header className="auth-pane-header">
-            <button
-              type="button"
-              className="brand-lockup brand-button"
-              onClick={() => setLocation("/")}
-            >
-              <img src={brandLogo} alt="GlobeTrotter" className="brand-mark" />
-              <span>
-                <span className="brand-name">GlobeTrotter</span>
-                <span className="brand-tag">PLAN IT YOUR WAY</span>
-              </span>
-            </button>
+            <MusafirBrand variant="auth" onClick={() => setLocation("/")} />
           </header>
 
           <div className="auth-boarding-card">
             <div className="boarding-pass-notch" />
-            <div className="boarding-pass-badge">PASSPORT ASSISTANCE</div>
+            <div className="boarding-pass-badge">PASSPORT ASSISTANCE · MUSAFIR</div>
 
             {!isSubmitted ? (
               <>

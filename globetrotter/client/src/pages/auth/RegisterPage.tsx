@@ -7,7 +7,7 @@ import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowRight, Compass, MapPin, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import brandLogo from "@/assets/branding/globetrotter-logo.png";
+import { MusafirBrand } from "@/components/brand/MusafirBrand";
 import HERO_ART from "@/assets/illustrations/globetrotter-hero-atlas.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthTransition } from "@/components/auth/AuthTransition";
@@ -140,22 +140,12 @@ export function RegisterPage() {
         {/* Right Column: Registration Card */}
         <section className="auth-form-pane">
           <header className="auth-pane-header">
-            <button
-              type="button"
-              className="brand-lockup brand-button"
-              onClick={() => setLocation("/")}
-            >
-              <img src={brandLogo} alt="GlobeTrotter" className="brand-mark" />
-              <span>
-                <span className="brand-name">GlobeTrotter</span>
-                <span className="brand-tag">PLAN IT YOUR WAY</span>
-              </span>
-            </button>
+            <MusafirBrand variant="auth" onClick={() => setLocation("/")} />
           </header>
 
           <div className="auth-boarding-card">
             <div className="boarding-pass-notch" />
-            <div className="boarding-pass-badge">NEW TRAVELLER PASS</div>
+            <div className="boarding-pass-badge">NEW TRAVELLER PASS · MUSAFIR</div>
 
             <div className="auth-card-intro">
               <span className="auth-eyebrow">A FRESH TRAVEL DESK</span>

@@ -5,7 +5,7 @@
 
 import { BadgeHelp, Compass, LayoutDashboard, ListTree, LogOut, Map, Menu, PlaneTakeoff, Search, Settings, Share2, UserRound, WalletCards } from "lucide-react";
 import { GlobalSearchDialog } from "@/components/DemoUi";
-import brandLogo from "@/assets/branding/globetrotter-logo.png";
+import { MusafirBrand } from "@/components/brand/MusafirBrand";
 import { useLocation } from "wouter";
 import { useState, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,13 +42,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="story-app">
       <aside className="story-sidebar">
-        <button className="brand-lockup brand-button" onClick={() => setLocation("/dashboard")}>
-          <img src={brandLogo} alt="GlobeTrotter" className="brand-mark" />
-          <span>
-            <span className="brand-name">GlobeTrotter</span>
-            <span className="brand-tag">Plan it your way</span>
-          </span>
-        </button>
+        <MusafirBrand variant="sidebar" onClick={() => setLocation("/dashboard")} />
         <button className="new-trip-button" onClick={() => setLocation("/trips/new")}>
           <PlaneTakeoff size={18} strokeWidth={2.5} /> Plan a new trip
         </button>
@@ -98,10 +92,7 @@ export function AppShell({ children }: AppShellProps) {
       </aside>
 
       <header className="mobile-story-header">
-        <button className="brand-lockup brand-button" onClick={() => setLocation("/dashboard")}>
-          <img src={brandLogo} alt="GlobeTrotter" className="brand-mark" />
-          <span className="brand-name">GlobeTrotter</span>
-        </button>
+        <MusafirBrand variant="sidebar" onClick={() => setLocation("/dashboard")} />
         <button className="icon-button" aria-label="Open navigation" onClick={() => setLocation("/trips")}>
           <Menu size={21} />
         </button>
@@ -109,9 +100,9 @@ export function AppShell({ children }: AppShellProps) {
       <main className="story-main">
         <div className="topbar">
           <div className="topbar-leading">
-            <div className="topbar-brand">
-              <img src={brandLogo} alt="GlobeTrotter" />
-              <span>GlobeTrotter</span>
+            <div className="topbar-desk-badge">
+              <MusafirBrand variant="compact" />
+              <span className="desk-title-text">Travel desk</span>
             </div>
             <div className="breadcrumb">
               <Map size={14} /> Travel desk <span>/</span>{" "}

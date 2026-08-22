@@ -1,14 +1,16 @@
-# GlobeTrotter — Project Continuation Guide
+# Musafir — Har safar, ek kahani
+### Personal Travel Atlas & Multi-City Planner
 
-> **Read this first if you are the next ChatGPT, coding agent, or developer working on GlobeTrotter.**
+> **Read this first if you are the next ChatGPT, coding agent, or developer working on Musafir.**
 
 ## Current Status
 
-**GlobeTrotter Phase 1 (Odoo Backend + PostgreSQL Foundation) is complete.**
+**Musafir (formerly GlobeTrotter) — Phase 1 & Branding Update is complete.**
 The repository contains both the polished React/TypeScript Storybook Atlas frontend and the native Odoo module (`addons/globetrotter`) with PostgreSQL persistence, full relational models, RESTful API controllers, security groups, demo seed data, and a typed API client service layer.
 
 | Component | Status | Details |
 | --- | --- | --- |
+| **Brand & Visual Identity** | Complete | Rebranded to **Musafir** ("Har safar, ek kahani") with official colorful logo, transparent masking, and discover dashboard. |
 | **Authentication & Entry Flow** | Complete | Polished Storybook Atlas `/login`, `/register`, `/forgot-password`, `/onboarding` (4-step setup), and Demo Workspace (*Traveler* / *Admin*). |
 | **Odoo Backend Module** | Complete | Located in `addons/globetrotter`, defining 12 relational models & business logic. |
 | **PostgreSQL Schema** | Complete | Normalized relational hierarchy: `Trip → TripStop → ItineraryDay → TripActivity`, `Budget`, `Expense`, `SharedTrip`. |
@@ -22,7 +24,7 @@ The repository contains both the polished React/TypeScript Storybook Atlas front
 
 ## Product Purpose
 
-GlobeTrotter is a personal, multi-city travel-planning application. Its primary product journey is:
+Musafir is a personal, multi-city travel-planning application. Its primary product journey is:
 
 ```text
 Discover → Plan → Organize → Budget → Visualize → Share
