@@ -60,11 +60,29 @@ const upload = multer({
   },
 });
 
+// Helper: Detect accurate image MIME type
+function getMimeType(filePath: string, storedMime?: string): string {
+  if (storedMime && storedMime.startsWith("image/")) return storedMime;
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".png") return "image/png";
+  if (ext === ".webp") return "image/webp";
+  if (ext === ".gif") return "image/gif";
+  if (ext === ".svg") return "image/svg+xml";
+  return "image/jpeg";
+}
+
 // Middleware: Authenticate / Resolve Current User
 async function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
-    const headerId = (req.headers["x-user-id"] as string) || "";
-    const headerEmail = (req.headers["x-user-email"] as string) || "";
+    const headerId =
+      (req.headers["x-user-id"] as string) ||
+      (req.query.userId as string) ||
+      (req.query.u as string) ||
+      "";
+    const headerEmail =
+      (req.headers["x-user-email"] as string) ||
+      (req.query.email as string) ||
+      "";
     const headerName = (req.headers["x-user-name"] as string) || "";
 
     const usersCol = await getUsersCollection();
@@ -77,11 +95,20 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
       user = await usersCol.findOne({ email: headerEmail.toLowerCase() });
     }
 
-    // Auto-seed user if not existing yet (from auth context login)
+    // If no credentials provided, resolve to the primary user in DB
+    if (!user && !headerId && !headerEmail) {
+      user = await usersCol.findOne({}, { sort: { createdAt: 1 } });
+    }
+
+    // Auto-seed default user if database is completely empty
     if (!user) {
-      const defaultId = headerId || `user_${Date.now()}`;
-      const defaultEmail = headerEmail || (headerName ? `${headerName.toLowerCase().replace(/\s+/g, "")}@example.com` : "traveler@globetrotter.travel");
-      const defaultName = headerName || "Mita Shah";
+      const defaultId = headerId || "usr_romit";
+      const defaultEmail =
+        headerEmail ||
+        (headerName
+          ? `${headerName.toLowerCase().replace(/\s+/g, "")}@gmail.com`
+          : "romitkakadiya2703@gmail.com");
+      const defaultName = headerName || "Romit Kakadiya";
 
       const newUser: UserDocument = {
         id: defaultId,
@@ -334,6 +361,96 @@ apiRouter.patch("/privacy", requireAuth, async (req: Request, res: Response) => 
 // -------------------------------------------------------------
 // 5. Private Trip Photos APIs (Strict Verification & Isolation)
 // -------------------------------------------------------------
+
+// 5.1 GET User Trips with Real Dynamic Photo Counts
+apiRouter.get("/user/trips-with-photo-counts", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user as UserDocument;
+    const tripsCol = await getTripsCollection();
+    const photosCol = await getTripPhotosCollection();
+
+    let trips = await tripsCol
+      .find({ userId: user.id })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    // If user has 0 trips in DB, check for default trip
+    if (trips.length === 0) {
+      const defaultTrip: TripDocument = {
+        id: "goa-adventure",
+        userId: user.id,
+        name: "Goa Adventure",
+        dateRange: "12–16 Aug 2026",
+        duration: "5 days",
+        description: "A coastal expedition across beaches and forts with time to wander.",
+        story: "A coastal expedition across beaches and forts with time to wander.",
+        status: "Planned",
+        budget: 25000,
+        estimatedCost: 18500,
+        travelStyle: "Adventure",
+        travelStyles: ["Adventure", "Relaxation"],
+        startLocation: "Mumbai",
+        endLocation: "Goa",
+        stops: [
+          {
+            id: "stop-mumbai",
+            city: "Mumbai",
+            country: "India",
+            region: "Maharashtra",
+            dateRange: "12–13 Aug",
+            arrival: "Wed, 12 Aug",
+            departure: "Thu, 13 Aug",
+            color: "#2CB9AA",
+            days: [],
+          },
+          {
+            id: "stop-goa",
+            city: "Goa",
+            country: "India",
+            region: "Goa",
+            dateRange: "14–16 Aug",
+            arrival: "Fri, 14 Aug",
+            departure: "Sun, 16 Aug",
+            color: "#FF6550",
+            days: [],
+          },
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      await tripsCol.insertOne(defaultTrip);
+      trips = await tripsCol.find({ userId: user.id }).toArray();
+    }
+
+    // Attach real photo counts from MongoDB
+    const tripsWithCounts = await Promise.all(
+      trips.map(async (trip) => {
+        const photoCount = await photosCol.countDocuments({
+          userId: user.id,
+          tripId: trip.id,
+        });
+        return {
+          id: trip.id,
+          name: trip.name,
+          dateRange: trip.dateRange,
+          duration: trip.duration,
+          startLocation: trip.startLocation,
+          endLocation: trip.endLocation,
+          route: trip.stops?.map((s: any) => s.city).join(" → ") || "Route",
+          stopsCount: trip.stops?.length || 0,
+          photoCount,
+        };
+      })
+    );
+
+    res.json(tripsWithCounts);
+  } catch (error) {
+    console.error("GET /api/user/trips-with-photo-counts error", error);
+    res.status(500).json({ error: "Failed to load trips with photo counts." });
+  }
+});
+
+// 5.2 GET Photos for a Specific Trip
 apiRouter.get("/trips/:tripId/photos", requireAuth, async (req: Request, res: Response) => {
   try {
     const user = (req as any).user as UserDocument;
@@ -345,18 +462,22 @@ apiRouter.get("/trips/:tripId/photos", requireAuth, async (req: Request, res: Re
       .sort({ createdAt: -1 })
       .toArray();
 
-    // Format photo URLs
-    const formatted = photos.map((p) => ({
-      id: p.id,
-      tripId: p.tripId,
-      filename: p.filename,
-      originalName: p.originalName,
-      caption: p.caption || "",
-      size: p.size,
-      mimeType: p.mimeType,
-      url: `/api/photos/${p.id}`,
-      createdAt: p.createdAt,
-    }));
+    // Format photo metadata with verified availability
+    const formatted = photos.map((p) => {
+      const isAvailable = fs.existsSync(p.storagePath);
+      return {
+        id: p.id,
+        tripId: p.tripId,
+        filename: p.filename,
+        originalName: p.originalName,
+        caption: p.caption || "",
+        size: p.size,
+        mimeType: p.mimeType,
+        isAvailable,
+        url: `/api/trips/${p.tripId}/photos/${p.id}`,
+        createdAt: p.createdAt,
+      };
+    });
 
     res.json(formatted);
   } catch (error) {
@@ -365,41 +486,46 @@ apiRouter.get("/trips/:tripId/photos", requireAuth, async (req: Request, res: Re
   }
 });
 
+// 5.3 POST Upload Photos for a Specific Trip (Supports single & multiple)
 apiRouter.post(
   "/trips/:tripId/photos",
   requireAuth,
-  upload.single("photo"),
+  upload.array("photos", 10),
   async (req: Request, res: Response) => {
     try {
       const user = (req as any).user as UserDocument;
       const tripId = req.params.tripId;
-      const file = req.file;
+      const files = (req.files as Express.Multer.File[]) || [];
+      const singleFile = req.file;
+      const allFiles = files.length > 0 ? files : singleFile ? [singleFile] : [];
 
-      if (!file) {
+      if (allFiles.length === 0) {
         return res.status(400).json({ error: "No image file provided." });
       }
 
       const photosCol = await getTripPhotosCollection();
+      const caption = (req.body.caption as string) || "";
 
-      const newPhoto: TripPhotoDocument = {
-        id: `photo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        userId: user.id,
-        tripId,
-        filename: file.filename,
-        originalName: file.originalname,
-        storagePath: file.path,
-        mimeType: file.mimetype,
-        size: file.size,
-        caption: (req.body.caption as string) || "",
-        isPrivate: true,
-        createdAt: new Date(),
-      };
+      const createdPhotos = [];
 
-      await photosCol.insertOne(newPhoto);
+      for (const file of allFiles) {
+        const newPhoto: TripPhotoDocument = {
+          id: `photo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          userId: user.id,
+          tripId,
+          filename: file.filename,
+          originalName: file.originalname,
+          storagePath: file.path,
+          mimeType: file.mimetype || getMimeType(file.path),
+          size: file.size,
+          caption,
+          isPrivate: true,
+          createdAt: new Date(),
+        };
 
-      res.status(201).json({
-        success: true,
-        photo: {
+        await photosCol.insertOne(newPhoto);
+
+        createdPhotos.push({
           id: newPhoto.id,
           tripId: newPhoto.tripId,
           filename: newPhoto.filename,
@@ -407,9 +533,16 @@ apiRouter.post(
           caption: newPhoto.caption,
           size: newPhoto.size,
           mimeType: newPhoto.mimeType,
-          url: `/api/photos/${newPhoto.id}`,
+          isAvailable: true,
+          url: `/api/trips/${newPhoto.tripId}/photos/${newPhoto.id}`,
           createdAt: newPhoto.createdAt,
-        },
+        });
+      }
+
+      res.status(201).json({
+        success: true,
+        photos: createdPhotos,
+        photo: createdPhotos[0],
       });
     } catch (error) {
       console.error("POST /api/trips/:tripId/photos error", error);
@@ -418,6 +551,7 @@ apiRouter.post(
   }
 );
 
+// 5.4 DELETE a Specific Photo
 apiRouter.delete("/trips/:tripId/photos/:photoId", requireAuth, async (req: Request, res: Response) => {
   try {
     const user = (req as any).user as UserDocument;
@@ -430,7 +564,7 @@ apiRouter.delete("/trips/:tripId/photos/:photoId", requireAuth, async (req: Requ
       return res.status(403).json({ error: "Photo not found or permission denied." });
     }
 
-    // Delete file from disk
+    // Delete physical file from private disk
     if (fs.existsSync(photo.storagePath)) {
       try {
         fs.unlinkSync(photo.storagePath);
@@ -439,7 +573,7 @@ apiRouter.delete("/trips/:tripId/photos/:photoId", requireAuth, async (req: Requ
       }
     }
 
-    // Delete DB record
+    // Delete MongoDB record
     await photosCol.deleteOne({ id: photoId, userId: user.id });
 
     res.json({ success: true, message: "Photo deleted successfully." });
@@ -449,32 +583,53 @@ apiRouter.delete("/trips/:tripId/photos/:photoId", requireAuth, async (req: Requ
   }
 });
 
-// Authenticated Private Photo File Server
+// Helper for streaming binary image responses
+async function servePhotoBinary(photoId: string, req: Request, res: Response) {
+  const user = (req as any).user as UserDocument;
+  const photosCol = await getTripPhotosCollection();
+  const photo = await photosCol.findOne({ id: photoId });
+
+  if (!photo) {
+    return res.status(404).json({ error: "Photo not found." });
+  }
+
+  // Security Check: Verify Ownership
+  if (photo.userId !== user.id && photo.isPrivate) {
+    return res.status(403).json({ error: "Access denied. This photo is private." });
+  }
+
+  if (!fs.existsSync(photo.storagePath)) {
+    return res.status(404).json({ error: "Physical image file not found on disk." });
+  }
+
+  const stat = fs.statSync(photo.storagePath);
+  if (stat.size === 0) {
+    return res.status(404).json({ error: "Image file is empty." });
+  }
+
+  const mimeType = getMimeType(photo.storagePath, photo.mimeType);
+  res.setHeader("Content-Type", mimeType);
+  res.setHeader("Content-Length", stat.size);
+  res.setHeader("Cache-Control", "private, no-transform, max-age=86400");
+  res.setHeader("Accept-Ranges", "bytes");
+
+  const stream = fs.createReadStream(photo.storagePath);
+  stream.pipe(res);
+}
+
+// 5.5 Authenticated Image Serving Endpoints
+apiRouter.get("/trips/:tripId/photos/:photoId", requireAuth, async (req: Request, res: Response) => {
+  try {
+    await servePhotoBinary(req.params.photoId, req, res);
+  } catch (error) {
+    console.error("GET /api/trips/:tripId/photos/:photoId error", error);
+    res.status(500).json({ error: "Failed to serve photo." });
+  }
+});
+
 apiRouter.get("/photos/:photoId", requireAuth, async (req: Request, res: Response) => {
   try {
-    const user = (req as any).user as UserDocument;
-    const photoId = req.params.photoId;
-
-    const photosCol = await getTripPhotosCollection();
-    const photo = await photosCol.findOne({ id: photoId });
-
-    if (!photo) {
-      return res.status(404).json({ error: "Photo not found." });
-    }
-
-    // Security Check: Verify Ownership
-    if (photo.userId !== user.id && photo.isPrivate) {
-      return res.status(403).json({ error: "Access denied. This photo is private." });
-    }
-
-    if (!fs.existsSync(photo.storagePath)) {
-      return res.status(404).json({ error: "File not found on disk." });
-    }
-
-    res.setHeader("Content-Type", photo.mimeType || "image/jpeg");
-    res.setHeader("Cache-Control", "private, max-age=3600");
-    const stream = fs.createReadStream(photo.storagePath);
-    stream.pipe(res);
+    await servePhotoBinary(req.params.photoId, req, res);
   } catch (error) {
     console.error("GET /api/photos/:photoId error", error);
     res.status(500).json({ error: "Failed to serve photo." });

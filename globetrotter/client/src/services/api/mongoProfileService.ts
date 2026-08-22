@@ -171,6 +171,28 @@ export const mongoProfileService = {
   },
 
   // 5. Private Trip Photos
+  async getTripsWithPhotoCounts(
+    user?: { id?: string; email?: string; name?: string } | null
+  ): Promise<
+    {
+      id: string;
+      name: string;
+      dateRange: string;
+      duration: string;
+      startLocation?: string;
+      endLocation?: string;
+      route: string;
+      stopsCount: number;
+      photoCount: number;
+    }[]
+  > {
+    const res = await fetch("/api/user/trips-with-photo-counts", {
+      headers: getAuthHeaders(user),
+    });
+    if (!res.ok) throw new Error("Failed to load trips with photo counts.");
+    return res.json();
+  },
+
   async getTripPhotos(
     tripId: string,
     user?: { id?: string; email?: string; name?: string } | null
@@ -182,14 +204,16 @@ export const mongoProfileService = {
     return res.json();
   },
 
-  async uploadTripPhoto(
+  async uploadTripPhotos(
     tripId: string,
-    file: File,
+    files: File[],
     caption = "",
     user?: { id?: string; email?: string; name?: string } | null
-  ): Promise<TripPhoto> {
+  ): Promise<TripPhoto[]> {
     const formData = new FormData();
-    formData.append("photo", file);
+    for (const file of files) {
+      formData.append("photos", file);
+    }
     if (caption) formData.append("caption", caption);
 
     const headers: Record<string, string> = {};
@@ -202,9 +226,19 @@ export const mongoProfileService = {
       headers,
       body: formData,
     });
-    if (!res.ok) throw new Error("Failed to upload trip photo.");
+    if (!res.ok) throw new Error("Failed to upload trip photos.");
     const json = await res.json();
-    return json.photo;
+    return json.photos || (json.photo ? [json.photo] : []);
+  },
+
+  async uploadTripPhoto(
+    tripId: string,
+    file: File,
+    caption = "",
+    user?: { id?: string; email?: string; name?: string } | null
+  ): Promise<TripPhoto> {
+    const photos = await mongoProfileService.uploadTripPhotos(tripId, [file], caption, user);
+    return photos[0];
   },
 
   async deleteTripPhoto(
@@ -217,5 +251,18 @@ export const mongoProfileService = {
       headers: getAuthHeaders(user),
     });
     if (!res.ok) throw new Error("Failed to delete trip photo.");
+  },
+
+  // Authenticated binary photo loader (Returns Object URL)
+  async fetchPhotoBlobUrl(
+    photoUrl: string,
+    user?: { id?: string; email?: string; name?: string } | null
+  ): Promise<string> {
+    const res = await fetch(photoUrl, {
+      headers: getAuthHeaders(user),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to load image`);
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
   },
 };

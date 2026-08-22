@@ -220,18 +220,73 @@ h1 em, h2 em, h1 .handwritten { color: var(--coral); font-style: normal; }
 .privacy-toggle-buttons button { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border: 1.5px solid #d2c5ae; border-radius: 8px; background: #ffffff; color: #687488; font-size: 11px; font-weight: 800; cursor: pointer; transition: all 120ms ease; }
 .privacy-toggle-buttons button.active { border-color: var(--ink); background: #c7eee7; color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
 
-.private-photos-section { margin-top: 20px; padding: 18px; border: 2px solid var(--ink); border-radius: 14px; background: #fdfaf3; box-shadow: 3px 3px 0 var(--ink); }
-.photo-section-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
-.photo-section-header h4 { margin: 0 0 2px; font-family: "Baloo 2", sans-serif; font-size: 17px; color: var(--ink); }
-.photo-section-header p { margin: 0; font-size: 10px; color: #647285; }
+/* Real Trip-Wise Private Photo Gallery & Lightbox */
+.private-photos-section { margin-top: 20px; padding: 20px; border: 2px solid var(--ink); border-radius: 16px; background: #fdfaf3; box-shadow: 3px 3px 0 var(--ink); }
+.trip-wise-gallery-container { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+.stage-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.stage-header h3 { margin: 0 0 2px; font-family: "Baloo 2", sans-serif; font-size: 20px; color: var(--ink); }
+.stage-header p { margin: 0; font-size: 11px; color: #627183; font-weight: 600; }
 .privacy-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 1px solid var(--ink); border-radius: 5px; background: #fff2c9; font-size: 9px; font-weight: 900; color: var(--ink); }
-.photo-upload-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+
+.trip-loading-box { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 35px 20px; font-size: 12px; font-weight: 700; color: #627183; border: 2px dashed #d3c5ae; border-radius: 12px; background: #fffdf8; }
+.empty-trips-gallery-state, .empty-photos-in-trip { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 45px 20px; text-align: center; border: 2px dashed #d3c5ae; border-radius: 14px; background: #fffdf8; }
+.empty-trips-gallery-state h4, .empty-photos-in-trip h4 { margin: 0; font-family: "Baloo 2", sans-serif; font-size: 18px; color: var(--ink); }
+.empty-trips-gallery-state p, .empty-photos-in-trip p { margin: 0; font-size: 11px; color: #6c7b8c; }
+
+.trip-photo-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; }
+.trip-photo-hub-card { border: 2px solid var(--ink); border-radius: 12px; background: #ffffff; padding: 14px; box-shadow: 2px 3px 0 var(--ink); display: flex; flex-direction: column; gap: 8px; transition: transform 120ms ease; }
+.trip-photo-hub-card:hover { transform: translateY(-2px); box-shadow: 4px 5px 0 var(--ink); }
+.hub-card-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.photo-count-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; background: #eef6f3; color: #166534; font-size: 10px; font-weight: 800; border: 1px solid #c2e2d6; }
+.hub-card-body h4 { margin: 2px 0 2px; font-family: "Baloo 2", sans-serif; font-size: 18px; color: var(--ink); }
+.hub-card-body p { margin: 0; font-size: 10px; font-weight: 700; color: #627183; display: flex; align-items: center; gap: 4px; }
+.hub-card-footer { margin-top: auto; padding-top: 8px; display: flex; justify-content: flex-end; }
+
+/* Selected Trip Gallery */
+.selected-trip-gallery-stage { display: flex; flex-direction: column; gap: 14px; }
+.back-to-trips-btn { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 11px; cursor: pointer; border: 0; background: transparent; color: var(--ink); margin-bottom: 2px; }
+.gallery-trip-banner { display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 18px; border: 2px solid var(--ink); border-radius: 12px; background: #fff4cb; box-shadow: 3px 3px 0 var(--ink); }
+.gallery-trip-banner h2 { margin: 2px 0 0; font-family: "Baloo 2", sans-serif; font-size: 24px; color: var(--ink); }
+.gallery-trip-banner p { margin: 2px 0 0; font-size: 11px; font-weight: 700; color: #627183; }
+
+.gallery-upload-panel { display: flex; gap: 8px; align-items: center; background: #ffffff; padding: 10px 14px; border: 2px solid var(--ink); border-radius: 12px; box-shadow: 2px 2px 0 var(--ink); }
 .caption-input { flex: 1; padding: 8px 12px; border: 1.5px solid #d3c5ae; border-radius: 8px; background: #ffffff; font-size: 11px; font-weight: 600; outline: none; }
-.private-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
-.photo-card { position: relative; border: 1.5px solid var(--ink); border-radius: 10px; overflow: hidden; background: #ffffff; box-shadow: 2px 2px 0 var(--ink); }
-.photo-card img { width: 100%; height: 95px; object-fit: cover; display: block; }
-.photo-card-info { padding: 6px 8px; display: flex; align-items: center; justify-content: space-between; gap: 4px; background: #fffdf8; }
-.photo-card-info strong { font-size: 10px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.real-photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 6px; }
+@media (max-width: 900px) { .real-photo-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 580px) { .real-photo-grid { grid-template-columns: 1fr; } }
+
+.real-photo-item { position: relative; border: 2px solid var(--ink); border-radius: 12px; overflow: hidden; background: #ffffff; box-shadow: 2px 3px 0 var(--ink); aspect-ratio: 4 / 3; cursor: pointer; }
+.gallery-img-elem, .auth-loaded-image { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 200ms ease; }
+.real-photo-item:hover .gallery-img-elem { transform: scale(1.04); }
+
+.auth-image-skeleton { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: #ede6d8; color: #738294; font-size: 11px; font-weight: 700; }
+.auth-image-fallback { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: #fdfaf3; color: #8896a6; font-size: 10px; font-weight: 700; padding: 12px; text-align: center; }
+.fallback-text { max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.retry-image-btn { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 1px solid var(--ink); border-radius: 6px; background: #ffffff; font-size: 9px; font-weight: 800; cursor: pointer; color: var(--ink); }
+
+.photo-hover-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(16,24,40,0.88) 0%, rgba(16,24,40,0.2) 60%, transparent 100%); opacity: 0; transition: opacity 160ms ease; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; color: #ffffff; }
+.real-photo-item:hover .photo-hover-overlay { opacity: 1; }
+.overlay-info { margin-top: auto; margin-bottom: 4px; }
+.caption-text { font-size: 11px; font-weight: 700; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.overlay-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.zoom-action-btn, .delete-action-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid #ffffff; background: rgba(0,0,0,0.5); color: #ffffff; display: grid; place-items: center; cursor: pointer; transition: all 120ms ease; }
+.zoom-action-btn:hover { background: var(--teal); border-color: var(--teal); }
+.delete-action-btn:hover { background: var(--coral); border-color: var(--coral); }
+
+/* Fullscreen Lightbox Modal */
+.lightbox-backdrop { position: fixed; inset: 0; z-index: 1000; background: rgba(14,20,32,0.92); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.lightbox-container { position: relative; max-width: 860px; width: 100%; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.lightbox-image-wrap { width: 100%; height: min(65vh, 520px); display: flex; justify-content: center; align-items: center; border: 2.5px solid var(--ink); border-radius: 14px; overflow: hidden; background: #000000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.lightbox-img-elem { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.lightbox-close-btn { position: absolute; top: -14px; right: -14px; width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--ink); background: #ffffff; color: var(--ink); font-weight: 900; display: grid; place-items: center; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); z-index: 10; }
+.lightbox-nav-btn { position: absolute; top: 45%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--ink); background: #ffffff; color: var(--ink); display: grid; place-items: center; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); z-index: 10; }
+.lightbox-nav-btn.prev-btn { left: -22px; }
+.lightbox-nav-btn.next-btn { right: -22px; }
+.lightbox-footer { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border: 2px solid var(--ink); border-radius: 12px; background: #fffdf8; box-shadow: 3px 3px 0 var(--ink); color: var(--ink); }
+.lightbox-meta strong { display: block; font-size: 13px; color: var(--ink); }
+.lightbox-meta span { font-size: 10px; color: #627284; font-weight: 700; }
+.lightbox-delete-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border: 1.5px solid #dc2626; border-radius: 7px; background: #fee2e2; color: #dc2626; font-size: 11px; font-weight: 800; cursor: pointer; }
 
 /* Dedicated Discover Feed & AI Exploration */
 .discover-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-top: 18px; }

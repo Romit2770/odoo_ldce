@@ -32,6 +32,7 @@ import {
   type SavedDestination,
   type TripPhoto,
 } from "@/services/api/mongoProfileService";
+import { TripPhotoGallery } from "./TripPhotoGallery";
 
 type ProfileTab = "profile" | "preferences" | "destinations" | "privacy";
 
@@ -627,75 +628,9 @@ export function ProfileSettingsView() {
               </div>
             </div>
 
-            {/* Private Trip Photos Section */}
+            {/* Private Trip Photos Section with Real Trip-Wise Gallery */}
             <div className="private-photos-section">
-              <div className="photo-section-header">
-                <div>
-                  <h4>Private Trip Photos</h4>
-                  <p>Photos are stored in isolated private storage and verified per user.</p>
-                </div>
-                <span className="privacy-badge">
-                  <Lock size={11} /> Private to you
-                </span>
-              </div>
-
-              {/* Upload Dropzone */}
-              <div className="photo-upload-bar">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/jpeg,image/png,image/webp"
-                  style={{ display: "none" }}
-                  onChange={handlePhotoUpload}
-                />
-                <input
-                  type="text"
-                  placeholder="Optional photo caption..."
-                  value={photoCaption}
-                  onChange={(e) => setPhotoCaption(e.target.value)}
-                  className="caption-input"
-                />
-                <button
-                  type="button"
-                  className="coral-button btn-sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingPhoto}
-                >
-                  {isUploadingPhoto ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Upload size={14} />
-                  )}
-                  Upload photo
-                </button>
-              </div>
-
-              {/* Photo Gallery Grid */}
-              {photos.length === 0 ? (
-                <div className="empty-photo-notice">
-                  <ImageIcon size={24} />
-                  <span>No private photos uploaded for this trip yet.</span>
-                </div>
-              ) : (
-                <div className="private-photo-grid">
-                  {photos.map((p) => (
-                    <div key={p.id} className="photo-card">
-                      <img src={p.url} alt={p.caption || p.originalName} />
-                      <div className="photo-card-info">
-                        <strong>{p.caption || p.originalName}</strong>
-                        <button
-                          type="button"
-                          className="delete-photo-btn"
-                          onClick={() => handleDeletePhoto(p.id)}
-                          title="Delete photo"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <TripPhotoGallery />
             </div>
 
             <div className="form-footer">
