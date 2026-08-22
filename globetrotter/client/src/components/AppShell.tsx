@@ -9,6 +9,7 @@ import brandLogo from "@/assets/branding/globetrotter-logo.png";
 import { useLocation } from "wouter";
 import { useState, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { extractFirstName } from "@/lib/nameFormatter";
 import { toast } from "sonner";
 
 type AppShellProps = { children: ReactNode };
@@ -37,7 +38,7 @@ export function AppShell({ children }: AppShellProps) {
     setLocation("/login");
   };
 
-  const displayName = user?.name ? user.name.split(" ")[0] : "Traveller";
+  const displayName = extractFirstName(user?.name);
 
   return (
     <div className="story-app">

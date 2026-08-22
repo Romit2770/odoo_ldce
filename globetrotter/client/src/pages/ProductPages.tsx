@@ -11,6 +11,7 @@ import { StorybookAtlasMap } from "@/components/travel/StorybookAtlasMap";
 import { DestinationPickerMap } from "@/components/travel/DestinationPickerMap";
 import { useTripPlanner } from "@/contexts/TripPlannerContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { extractFirstName } from "@/lib/nameFormatter";
 import { goaPhotoStory } from "@/domain/destinationPhotoStories";
 import { activityIdeas, cityCatalog, sampleTripSummaries, type ActivityIdea, type TripStatus } from "@/domain/trip";
 import { formatRupees, getAllActivities, getAllDays, getEstimatedCost, getExpenseBreakdown, getPlanningProgress } from "@/lib/tripMath";
@@ -81,7 +82,7 @@ export function DashboardPage() {
   const activityCount = getAllActivities(trip).length;
 
   const timeGreeting = getTimeGreeting();
-  const firstName = user?.name ? user.name.trim().split(/\s+/)[0] : "there";
+  const firstName = extractFirstName(user?.name);
   const greetingTitle = `${timeGreeting}, ${firstName}.`;
 
   return (
