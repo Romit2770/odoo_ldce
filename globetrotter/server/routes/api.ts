@@ -684,11 +684,11 @@ async function generateUniqueShareCode(): Promise<string> {
   return `TRIP${Math.floor(1000 + Math.random() * 9000)}`;
 }
 
-// Helper: Get starter dummy trips covering 2-3 trips per tab (Upcoming, Ongoing, Completed, Draft)
+// Helper: Get starter dummy trips (1-2 curated trips per tab)
 function getStarterDummyTrips(userId: string): TripDocument[] {
   const now = new Date();
   return [
-    // --- UPCOMING (3 trips) ---
+    // --- UPCOMING (2 trips) ---
     {
       id: "goa-adventure",
       userId,
@@ -699,14 +699,57 @@ function getStarterDummyTrips(userId: string): TripDocument[] {
       story: "A coastal expedition across sunlit beaches, Portuguese heritage forts, and seaside shacks.",
       status: "Upcoming",
       budget: 25000,
-      estimatedCost: 18500,
+      estimatedCost: 21500,
       travelStyle: "Adventure",
       travelStyles: ["Adventure", "Relaxation"],
       startLocation: "Mumbai",
       endLocation: "Goa",
+      baseExpenses: { Transport: 4500, Accommodation: 7000, Food: 3200, Miscellaneous: 1700 },
       stops: [
-        { id: "stop-mumbai", city: "Mumbai", country: "India", region: "Maharashtra", dateRange: "12–13 Aug", arrival: "Wed, 12 Aug", departure: "Thu, 13 Aug", color: "#2CB9AA", days: [] },
-        { id: "stop-goa", city: "Goa", country: "India", region: "Goa", dateRange: "14–16 Aug", arrival: "Fri, 14 Aug", departure: "Sun, 16 Aug", color: "#FF6550", days: [] },
+        {
+          id: "mumbai",
+          city: "Mumbai",
+          country: "India",
+          region: "Maharashtra",
+          dateRange: "12–13 Aug",
+          arrival: "12 Aug",
+          departure: "13 Aug",
+          color: "#2CB9AA",
+          days: [
+            {
+              id: "mumbai-d1",
+              dayNumber: 1,
+              date: "Wed, 12 Aug",
+              city: "Mumbai",
+              activities: [
+                { id: "act-m1", name: "Gateway of India harbour walk", time: "10:00", duration: "1.5h", cost: 0, category: "Sightseeing", location: "Apollo Bunder", description: "Iconic landmark by the Arabian Sea." },
+                { id: "act-m2", name: "Marine Drive sunset & chaat", time: "17:30", duration: "2h", cost: 350, category: "Food", location: "Marine Drive", description: "Watch the Queen's Necklace light up." },
+              ],
+            },
+          ],
+        },
+        {
+          id: "goa",
+          city: "Goa",
+          country: "India",
+          region: "Goa",
+          dateRange: "14–16 Aug",
+          arrival: "14 Aug",
+          departure: "16 Aug",
+          color: "#FF6550",
+          days: [
+            {
+              id: "goa-d2",
+              dayNumber: 2,
+              date: "Fri, 14 Aug",
+              city: "Goa",
+              activities: [
+                { id: "act-g1", name: "Fort Aguada panoramic viewpoint", time: "11:00", duration: "2h", cost: 200, category: "Culture", location: "Sinquerim", description: "17th-century Portuguese fortress and lighthouse." },
+                { id: "act-g2", name: "Palolem beach shack dinner", time: "19:00", duration: "2.5h", cost: 1200, category: "Food", location: "Palolem", description: "Fresh seafood by candlelit tables on the sand." },
+              ],
+            },
+          ],
+        },
       ],
       sharing: { enabled: true, shareCode: "GOA7X2", createdAt: now },
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 10),
@@ -727,41 +770,57 @@ function getStarterDummyTrips(userId: string): TripDocument[] {
       travelStyles: ["Nature", "Relaxation"],
       startLocation: "Srinagar",
       endLocation: "Pahalgam",
+      baseExpenses: { Transport: 8000, Accommodation: 14000, Food: 6500, Miscellaneous: 2500 },
       stops: [
-        { id: "stop-srinagar", city: "Srinagar", country: "India", region: "Jammu & Kashmir", dateRange: "10–12 Sep", arrival: "Thu, 10 Sep", departure: "Sat, 12 Sep", color: "#2CB9AA", days: [] },
-        { id: "stop-gulmarg", city: "Gulmarg", country: "India", region: "Jammu & Kashmir", dateRange: "12–14 Sep", arrival: "Sat, 12 Sep", departure: "Mon, 14 Sep", color: "#FFC53D", days: [] },
-        { id: "stop-pahalgam", city: "Pahalgam", country: "India", region: "Jammu & Kashmir", dateRange: "14–16 Sep", arrival: "Mon, 14 Sep", departure: "Wed, 16 Sep", color: "#FF6550", days: [] },
+        {
+          id: "srinagar",
+          city: "Srinagar",
+          country: "India",
+          region: "Jammu & Kashmir",
+          dateRange: "10–12 Sep",
+          arrival: "10 Sep",
+          departure: "12 Sep",
+          color: "#2CB9AA",
+          days: [
+            {
+              id: "srinagar-d1",
+              dayNumber: 1,
+              date: "Thu, 10 Sep",
+              city: "Srinagar",
+              activities: [
+                { id: "act-s1", name: "Dal Lake Shikara ride at sunrise", time: "06:30", duration: "2h", cost: 800, category: "Nature", location: "Dal Lake", description: "Floating gardens and morning lotus blooms." },
+              ],
+            },
+          ],
+        },
+        {
+          id: "gulmarg",
+          city: "Gulmarg",
+          country: "India",
+          region: "Jammu & Kashmir",
+          dateRange: "12–14 Sep",
+          arrival: "12 Sep",
+          departure: "14 Sep",
+          color: "#FFC53D",
+          days: [
+            {
+              id: "gulmarg-d2",
+              dayNumber: 2,
+              date: "Sat, 12 Sep",
+              city: "Gulmarg",
+              activities: [
+                { id: "act-gu1", name: "Gulmarg Gondola to Apharwat Peak", time: "10:30", duration: "3h", cost: 1800, category: "Adventure", location: "Gulmarg", description: "One of the highest cable cars in the world." },
+              ],
+            },
+          ],
+        },
       ],
       sharing: { enabled: false, shareCode: null },
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 20),
       updatedAt: now,
     },
-    {
-      id: "himachal-circuit",
-      userId,
-      name: "Himachal Mountain Circuit",
-      dateRange: "05–12 Oct 2026",
-      duration: "8 days",
-      description: "High mountain roads through Rohtang, remote Spiti monasteries, and silent river valleys.",
-      story: "High mountain roads through Rohtang, remote Spiti monasteries, and silent river valleys.",
-      status: "Upcoming",
-      budget: 38000,
-      estimatedCost: 31000,
-      travelStyle: "Adventure",
-      travelStyles: ["Adventure", "Culture"],
-      startLocation: "Manali",
-      endLocation: "Kaza",
-      stops: [
-        { id: "stop-manali", city: "Manali", country: "India", region: "Himachal Pradesh", dateRange: "05–07 Oct", arrival: "Mon, 05 Oct", departure: "Wed, 07 Oct", color: "#2CB9AA", days: [] },
-        { id: "stop-spiti", city: "Spiti", country: "India", region: "Himachal Pradesh", dateRange: "07–10 Oct", arrival: "Wed, 07 Oct", departure: "Sat, 10 Oct", color: "#FF6550", days: [] },
-        { id: "stop-kaza", city: "Kaza", country: "India", region: "Himachal Pradesh", dateRange: "10–12 Oct", arrival: "Sat, 10 Oct", departure: "Mon, 12 Oct", color: "#FFC53D", days: [] },
-      ],
-      sharing: { enabled: false, shareCode: null },
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 30),
-      updatedAt: now,
-    },
 
-    // --- ONGOING (3 trips) ---
+    // --- ONGOING (1 trip) ---
     {
       id: "kerala-backwaters",
       userId,
@@ -772,70 +831,62 @@ function getStarterDummyTrips(userId: string): TripDocument[] {
       story: "Cruising palm-fringed lagoons in Alleppey and waking up above foggy tea slopes in Munnar.",
       status: "Ongoing",
       budget: 32000,
-      estimatedCost: 29500,
+      estimatedCost: 28500,
       travelStyle: "Relaxation",
       travelStyles: ["Relaxation", "Nature"],
       startLocation: "Kochi",
       endLocation: "Alleppey",
+      baseExpenses: { Transport: 5500, Accommodation: 11000, Food: 4800, Miscellaneous: 2000 },
       stops: [
-        { id: "stop-kochi", city: "Kochi", country: "India", region: "Kerala", dateRange: "20–22 Aug", arrival: "Thu, 20 Aug", departure: "Sat, 22 Aug", color: "#2CB9AA", days: [] },
-        { id: "stop-munnar", city: "Munnar", country: "India", region: "Kerala", dateRange: "22–24 Aug", arrival: "Sat, 22 Aug", departure: "Mon, 24 Aug", color: "#FFC53D", days: [] },
-        { id: "stop-alleppey", city: "Alleppey", country: "India", region: "Kerala", dateRange: "24–26 Aug", arrival: "Mon, 24 Aug", departure: "Wed, 26 Aug", color: "#FF6550", days: [] },
+        {
+          id: "kochi",
+          city: "Kochi",
+          country: "India",
+          region: "Kerala",
+          dateRange: "20–22 Aug",
+          arrival: "20 Aug",
+          departure: "22 Aug",
+          color: "#2CB9AA",
+          days: [
+            {
+              id: "kochi-d1",
+              dayNumber: 1,
+              date: "Thu, 20 Aug",
+              city: "Kochi",
+              activities: [
+                { id: "act-k1", name: "Fort Kochi Chinese fishing nets", time: "16:00", duration: "1.5h", cost: 0, category: "Sightseeing", location: "Fort Kochi", description: "Historic cantilevered fishing nets at twilight." },
+              ],
+            },
+          ],
+        },
+        {
+          id: "munnar",
+          city: "Munnar",
+          country: "India",
+          region: "Kerala",
+          dateRange: "22–24 Aug",
+          arrival: "22 Aug",
+          departure: "24 Aug",
+          color: "#FFC53D",
+          days: [
+            {
+              id: "munnar-d2",
+              dayNumber: 2,
+              date: "Sat, 22 Aug",
+              city: "Munnar",
+              activities: [
+                { id: "act-mu1", name: "Kolukkumalai organic tea trek", time: "07:00", duration: "4h", cost: 600, category: "Nature", location: "Kolukkumalai", description: "High elevation estate with mist valleys." },
+              ],
+            },
+          ],
+        },
       ],
       sharing: { enabled: false, shareCode: null },
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 40),
       updatedAt: now,
     },
-    {
-      id: "golden-triangle",
-      userId,
-      name: "Golden Triangle Express",
-      dateRange: "22–27 Aug 2026",
-      duration: "6 days",
-      description: "Delhi's Old Quarter, Agra's marble monuments, and Jaipur's royal sandstone palaces.",
-      story: "Delhi's Old Quarter, Agra's marble monuments, and Jaipur's royal sandstone palaces.",
-      status: "Ongoing",
-      budget: 28000,
-      estimatedCost: 24000,
-      travelStyle: "Culture",
-      travelStyles: ["Culture", "Food"],
-      startLocation: "Delhi",
-      endLocation: "Jaipur",
-      stops: [
-        { id: "stop-delhi", city: "Delhi", country: "India", region: "Delhi", dateRange: "22–24 Aug", arrival: "Sat, 22 Aug", departure: "Mon, 24 Aug", color: "#2CB9AA", days: [] },
-        { id: "stop-agra", city: "Agra", country: "India", region: "Uttar Pradesh", dateRange: "24–25 Aug", arrival: "Mon, 24 Aug", departure: "Tue, 25 Aug", color: "#FFC53D", days: [] },
-        { id: "stop-jaipur", city: "Jaipur", country: "India", region: "Rajasthan", dateRange: "25–27 Aug", arrival: "Tue, 25 Aug", departure: "Thu, 27 Aug", color: "#FF6550", days: [] },
-      ],
-      sharing: { enabled: false, shareCode: null },
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 50),
-      updatedAt: now,
-    },
-    {
-      id: "western-ghats-monsoon",
-      userId,
-      name: "Western Ghats Monsoon Trail",
-      dateRange: "21–25 Aug 2026",
-      duration: "5 days",
-      description: "Lush green ridges, thunderous waterfalls, and mist-covered mountain viewpoints.",
-      story: "Lush green ridges, thunderous waterfalls, and mist-covered mountain viewpoints.",
-      status: "Ongoing",
-      budget: 22000,
-      estimatedCost: 19000,
-      travelStyle: "Nature",
-      travelStyles: ["Nature", "Adventure"],
-      startLocation: "Pune",
-      endLocation: "Lonavala",
-      stops: [
-        { id: "stop-pune", city: "Pune", country: "India", region: "Maharashtra", dateRange: "21–22 Aug", arrival: "Fri, 21 Aug", departure: "Sat, 22 Aug", color: "#2CB9AA", days: [] },
-        { id: "stop-mahabaleshwar", city: "Mahabaleshwar", country: "India", region: "Maharashtra", dateRange: "22–24 Aug", arrival: "Sat, 22 Aug", departure: "Mon, 24 Aug", color: "#FFC53D", days: [] },
-        { id: "stop-lonavala", city: "Lonavala", country: "India", region: "Maharashtra", dateRange: "24–25 Aug", arrival: "Mon, 24 Aug", departure: "Tue, 25 Aug", color: "#FF6550", days: [] },
-      ],
-      sharing: { enabled: false, shareCode: null },
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 60),
-      updatedAt: now,
-    },
 
-    // --- COMPLETED (3 trips) ---
+    // --- COMPLETED (2 trips) ---
     {
       id: "rajasthan-heritage",
       userId,
@@ -846,15 +897,55 @@ function getStarterDummyTrips(userId: string): TripDocument[] {
       story: "Wandering through the Blue City of Jodhpur, City Palace in Jaipur, and Lake Pichola in Udaipur.",
       status: "Completed",
       budget: 52000,
-      estimatedCost: 49800,
+      estimatedCost: 48500,
       travelStyle: "Culture",
       travelStyles: ["Culture", "Luxury"],
       startLocation: "Jaipur",
       endLocation: "Udaipur",
+      baseExpenses: { Transport: 9000, Accommodation: 18000, Food: 7500, Miscellaneous: 3000 },
       stops: [
-        { id: "stop-jaipur", city: "Jaipur", country: "India", region: "Rajasthan", dateRange: "14–16 Jun", arrival: "Sun, 14 Jun", departure: "Tue, 16 Jun", color: "#FF6550", days: [] },
-        { id: "stop-jodhpur", city: "Jodhpur", country: "India", region: "Rajasthan", dateRange: "16–18 Jun", arrival: "Tue, 16 Jun", departure: "Thu, 18 Jun", color: "#2CB9AA", days: [] },
-        { id: "stop-udaipur", city: "Udaipur", country: "India", region: "Rajasthan", dateRange: "18–21 Jun", arrival: "Thu, 18 Jun", departure: "Sun, 21 Jun", color: "#FFC53D", days: [] },
+        {
+          id: "jaipur",
+          city: "Jaipur",
+          country: "India",
+          region: "Rajasthan",
+          dateRange: "14–16 Jun",
+          arrival: "14 Jun",
+          departure: "16 Jun",
+          color: "#FF6550",
+          days: [
+            {
+              id: "jaipur-d1",
+              dayNumber: 1,
+              date: "Sun, 14 Jun",
+              city: "Jaipur",
+              activities: [
+                { id: "act-j1", name: "Amer Fort ramparts walk", time: "09:00", duration: "2.5h", cost: 500, category: "Culture", location: "Amer", description: "Grand Rajput architecture and hilltop ramparts." },
+              ],
+            },
+          ],
+        },
+        {
+          id: "udaipur",
+          city: "Udaipur",
+          country: "India",
+          region: "Rajasthan",
+          dateRange: "18–21 Jun",
+          arrival: "18 Jun",
+          departure: "21 Jun",
+          color: "#2CB9AA",
+          days: [
+            {
+              id: "udaipur-d2",
+              dayNumber: 2,
+              date: "Fri, 19 Jun",
+              city: "Udaipur",
+              activities: [
+                { id: "act-u1", name: "Lake Pichola boat cruise", time: "17:00", duration: "1.5h", cost: 700, category: "Sightseeing", location: "Lake Pichola", description: "Sunset views of Jag Mandir and City Palace." },
+              ],
+            },
+          ],
+        },
       ],
       sharing: { enabled: false, shareCode: null },
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 120),
@@ -870,45 +961,41 @@ function getStarterDummyTrips(userId: string): TripDocument[] {
       story: "Dawn boat rides along the ghats, evening Ganga Aarti, and ancient stupas of Sarnath.",
       status: "Completed",
       budget: 18000,
-      estimatedCost: 16500,
+      estimatedCost: 15500,
       travelStyle: "Culture",
       travelStyles: ["Culture", "Food"],
       startLocation: "Varanasi",
       endLocation: "Sarnath",
+      baseExpenses: { Transport: 3000, Accommodation: 5500, Food: 3200, Miscellaneous: 1200 },
       stops: [
-        { id: "stop-varanasi", city: "Varanasi", country: "India", region: "Uttar Pradesh", dateRange: "02–05 May", arrival: "Sat, 02 May", departure: "Tue, 05 May", color: "#FF6550", days: [] },
-        { id: "stop-sarnath", city: "Sarnath", country: "India", region: "Uttar Pradesh", dateRange: "05–06 May", arrival: "Tue, 05 May", departure: "Wed, 06 May", color: "#2CB9AA", days: [] },
+        {
+          id: "varanasi",
+          city: "Varanasi",
+          country: "India",
+          region: "Uttar Pradesh",
+          dateRange: "02–05 May",
+          arrival: "02 May",
+          departure: "05 May",
+          color: "#FF6550",
+          days: [
+            {
+              id: "varanasi-d1",
+              dayNumber: 1,
+              date: "Sat, 02 May",
+              city: "Varanasi",
+              activities: [
+                { id: "act-v1", name: "Dashashwamedh Ghat Ganga Aarti", time: "18:30", duration: "1.5h", cost: 0, category: "Culture", location: "Dashashwamedh Ghat", description: "Grand prayer ceremony by the sacred river." },
+              ],
+            },
+          ],
+        },
       ],
       sharing: { enabled: false, shareCode: null },
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 180),
       updatedAt: now,
     },
-    {
-      id: "andaman-escape",
-      userId,
-      name: "Andaman Tropical Waters",
-      dateRange: "10–17 Jan 2026",
-      duration: "8 days",
-      description: "Radhanagar Beach sunsets, scuba diving in turquoise reefs, and peaceful cycling on Neil Island.",
-      story: "Radhanagar Beach sunsets, scuba diving in turquoise reefs, and peaceful cycling on Neil Island.",
-      status: "Completed",
-      budget: 64000,
-      estimatedCost: 59000,
-      travelStyle: "Relaxation",
-      travelStyles: ["Relaxation", "Adventure"],
-      startLocation: "Port Blair",
-      endLocation: "Neil Island",
-      stops: [
-        { id: "stop-portblair", city: "Port Blair", country: "India", region: "Andaman", dateRange: "10–12 Jan", arrival: "Sat, 10 Jan", departure: "Mon, 12 Jan", color: "#2CB9AA", days: [] },
-        { id: "stop-havelock", city: "Havelock", country: "India", region: "Andaman", dateRange: "12–15 Jan", arrival: "Mon, 12 Jan", departure: "Thu, 15 Jan", color: "#FF6550", days: [] },
-        { id: "stop-neil", city: "Neil Island", country: "India", region: "Andaman", dateRange: "15–17 Jan", arrival: "Thu, 15 Jan", departure: "Sat, 17 Jan", color: "#FFC53D", days: [] },
-      ],
-      sharing: { enabled: false, shareCode: null },
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 240),
-      updatedAt: now,
-    },
 
-    // --- DRAFT (3 trips) ---
+    // --- DRAFT (1 trip) ---
     {
       id: "meghalaya-roots",
       userId,
@@ -919,66 +1006,37 @@ function getStarterDummyTrips(userId: string): TripDocument[] {
       story: "Exploring living root bridges in Nongriat, crystal waters of Dawki, and misty waterfalls of Cherrapunji.",
       status: "Draft",
       budget: 30000,
-      estimatedCost: 26000,
+      estimatedCost: 24500,
       travelStyle: "Adventure",
       travelStyles: ["Adventure", "Nature"],
       startLocation: "Guwahati",
       endLocation: "Cherrapunji",
+      baseExpenses: { Transport: 5000, Accommodation: 9000, Food: 4200, Miscellaneous: 1800 },
       stops: [
-        { id: "stop-guwahati", city: "Guwahati", country: "India", region: "Assam", dateRange: "15–16 Nov", arrival: "Sun, 15 Nov", departure: "Mon, 16 Nov", color: "#2CB9AA", days: [] },
-        { id: "stop-shillong", city: "Shillong", country: "India", region: "Meghalaya", dateRange: "16–18 Nov", arrival: "Mon, 16 Nov", departure: "Wed, 18 Nov", color: "#FFC53D", days: [] },
-        { id: "stop-cherrapunji", city: "Cherrapunji", country: "India", region: "Meghalaya", dateRange: "18–20 Nov", arrival: "Wed, 18 Nov", departure: "Fri, 20 Nov", color: "#FF6550", days: [] },
+        {
+          id: "shillong",
+          city: "Shillong",
+          country: "India",
+          region: "Meghalaya",
+          dateRange: "15–17 Nov",
+          arrival: "15 Nov",
+          departure: "17 Nov",
+          color: "#2CB9AA",
+          days: [
+            {
+              id: "shillong-d1",
+              dayNumber: 1,
+              date: "Sun, 15 Nov",
+              city: "Shillong",
+              activities: [
+                { id: "act-sh1", name: "Umiam Lake viewpoint & café", time: "14:00", duration: "2h", cost: 150, category: "Nature", location: "Umiam", description: "Serene lakeside views nestled in pine hills." },
+              ],
+            },
+          ],
+        },
       ],
       sharing: { enabled: false, shareCode: null },
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 15),
-      updatedAt: now,
-    },
-    {
-      id: "ladakh-stargazer",
-      userId,
-      name: "Ladakh High Altitude Pass",
-      dateRange: "18–25 Dec 2026",
-      duration: "8 days",
-      description: "Crossing Khardung La, camel safari in Nubra sand dunes, and sleeping under the Milky Way at Pangong Tso.",
-      story: "Crossing Khardung La, camel safari in Nubra sand dunes, and sleeping under the Milky Way at Pangong Tso.",
-      status: "Draft",
-      budget: 55000,
-      estimatedCost: 48000,
-      travelStyle: "Adventure",
-      travelStyles: ["Adventure", "Nature"],
-      startLocation: "Leh",
-      endLocation: "Pangong",
-      stops: [
-        { id: "stop-leh", city: "Leh", country: "India", region: "Ladakh", dateRange: "18–20 Dec", arrival: "Fri, 18 Dec", departure: "Sun, 20 Dec", color: "#2CB9AA", days: [] },
-        { id: "stop-nubra", city: "Nubra Valley", country: "India", region: "Ladakh", dateRange: "20–22 Dec", arrival: "Sun, 20 Dec", departure: "Tue, 22 Dec", color: "#FF6550", days: [] },
-        { id: "stop-pangong", city: "Pangong Tso", country: "India", region: "Ladakh", dateRange: "22–25 Dec", arrival: "Tue, 22 Dec", departure: "Fri, 25 Dec", color: "#FFC53D", days: [] },
-      ],
-      sharing: { enabled: false, shareCode: null },
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8),
-      updatedAt: now,
-    },
-    {
-      id: "coorg-coffee-hills",
-      userId,
-      name: "Coorg & Kabini Wildlife",
-      dateRange: "08–12 Jan 2027",
-      duration: "5 days",
-      description: "Aromatic coffee estate retreats in Madikeri and dusk boat safaris for elephants in Nagarhole.",
-      story: "Aromatic coffee estate retreats in Madikeri and dusk boat safaris for elephants in Nagarhole.",
-      status: "Draft",
-      budget: 24000,
-      estimatedCost: 21000,
-      travelStyle: "Nature",
-      travelStyles: ["Nature", "Relaxation"],
-      startLocation: "Bangalore",
-      endLocation: "Coorg",
-      stops: [
-        { id: "stop-bangalore", city: "Bangalore", country: "India", region: "Karnataka", dateRange: "08–09 Jan", arrival: "Fri, 08 Jan", departure: "Sat, 09 Jan", color: "#2CB9AA", days: [] },
-        { id: "stop-mysore", city: "Mysore", country: "India", region: "Karnataka", dateRange: "09–10 Jan", arrival: "Sat, 09 Jan", departure: "Sun, 10 Jan", color: "#FFC53D", days: [] },
-        { id: "stop-coorg", city: "Coorg", country: "India", region: "Karnataka", dateRange: "10–12 Jan", arrival: "Sun, 10 Jan", departure: "Tue, 12 Jan", color: "#FF6550", days: [] },
-      ],
-      sharing: { enabled: false, shareCode: null },
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5),
       updatedAt: now,
     },
   ];
@@ -1030,12 +1088,26 @@ apiRouter.get("/trips/:tripId", requireAuth, async (req: Request, res: Response)
     const { tripId } = req.params;
     const tripsCol = await getTripsCollection();
 
-    const trip = await tripsCol.findOne({ id: tripId, userId: user.id });
+    const trip = await tripsCol.findOne({
+      $or: [
+        { id: tripId, userId: user.id },
+        { id: `${tripId}_${user.id}`, userId: user.id },
+        { id: tripId.replace(`_${user.id}`, ""), userId: user.id },
+      ],
+    });
     if (!trip) {
       return res.status(404).json({ error: "Trip not found or permission denied." });
     }
 
-    res.json(trip);
+    const est = Number(trip.estimatedCost) || Number(trip.budget) || 25000;
+    const baseExpenses = trip.baseExpenses || {
+      Transport: Math.round(est * 0.35),
+      Accommodation: Math.round(est * 0.35),
+      Food: Math.round(est * 0.2),
+      Miscellaneous: Math.round(est * 0.1),
+    };
+
+    res.json({ ...trip, baseExpenses });
   } catch (error) {
     console.error("GET /api/trips/:tripId error", error);
     res.status(500).json({ error: "Failed to load trip." });

@@ -13,7 +13,7 @@ import {
   destinationService,
   profileService,
 } from "@/services";
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useCallback, type ReactNode } from "react";
 
 type PlannerContextValue = {
   trip: Trip;
@@ -50,8 +50,100 @@ const orderItems = <T extends { id: string }>(items: T[], sourceId: string, targ
   return next;
 };
 
+// Sanitize and guarantee a completely valid domain Trip structure
+export function sanitizeTrip(raw: any): Trip {
+  if (!raw) return demoTrip;
+  const budget = Number(raw.budget) || 25000;
+  const estimatedCost = Number(raw.estimatedCost) || Math.round(budget * 0.85);
+
+  const baseExpenses =
+    raw.baseExpenses && typeof raw.baseExpenses === "object"
+      ? {
+          Transport: Number(raw.baseExpenses.Transport) || Math.round(estimatedCost * 0.35),
+          Accommodation: Number(raw.baseExpenses.Accommodation) || Math.round(estimatedCost * 0.35),
+          Food: Number(raw.baseExpenses.Food) || Math.round(estimatedCost * 0.2),
+          Miscellaneous: Number(raw.baseExpenses.Miscellaneous) || Math.round(estimatedCost * 0.1),
+        }
+      : {
+          Transport: Math.round(estimatedCost * 0.35),
+          Accommodation: Math.round(estimatedCost * 0.35),
+          Food: Math.round(estimatedCost * 0.2),
+          Miscellaneous: Math.round(estimatedCost * 0.1),
+        };
+
+  const rawStops = Array.isArray(raw.stops) ? raw.stops : [];
+  const stops: TripStop[] = rawStops.map((stop: any, stopIdx: number) => {
+    const cityName = stop.city || stop.name || `Stop ${stopIdx + 1}`;
+    const rawDays =
+      Array.isArray(stop.days) && stop.days.length > 0
+        ? stop.days
+        : [
+            {
+              id: `${stop.id || `stop-${stopIdx}`}-day-1`,
+              dayNumber: 1,
+              date: stop.arrival || stop.dateRange || "Day 1",
+              city: cityName,
+              activities: [
+                {
+                  id: `act-${stopIdx}-1`,
+                  name: `${cityName} arrival & check-in`,
+                  time: "10:00",
+                  duration: "1.5h",
+                  cost: 0,
+                  category: "Sightseeing" as const,
+                  location: cityName,
+                  description: `Settle in and take an introductory walking tour of ${cityName}.`,
+                },
+                {
+                  id: `act-${stopIdx}-2`,
+                  name: `${cityName} evening market & local food`,
+                  time: "17:00",
+                  duration: "2h",
+                  cost: 650,
+                  category: "Food" as const,
+                  location: cityName,
+                  description: `Explore renowned culinary spots and regional specialties in ${cityName}.`,
+                },
+              ],
+            },
+          ];
+
+    return {
+      id: stop.id || `stop-${stopIdx}`,
+      city: cityName,
+      country: stop.country || "India",
+      region: stop.region || cityName,
+      dateRange: stop.dateRange || "12–14 Aug",
+      arrival: stop.arrival || "12 Aug",
+      departure: stop.departure || "14 Aug",
+      color: stop.color || (stopIdx % 2 === 0 ? "#2CB9AA" : "#FF6550"),
+      days: rawDays,
+      latitude: stop.latitude,
+      longitude: stop.longitude,
+      address: stop.address,
+    };
+  });
+
+  return {
+    id: raw.id || `trip-${Date.now()}`,
+    name: raw.name || "My Journey",
+    dateRange: raw.dateRange || "12–16 Aug 2026",
+    duration: raw.duration || "5 days",
+    description: raw.description || "A curated travel adventure.",
+    status: raw.status || "Upcoming",
+    budget,
+    estimatedCost,
+    travelStyle: raw.travelStyle || "Adventure",
+    baseExpenses,
+    stops: stops.length > 0 ? stops : demoTrip.stops,
+  };
+}
+
 export function TripPlannerProvider({ children }: { children: ReactNode }) {
-  const [trip, setTrip] = useState<Trip>(demoTrip);
+  const [trip, setTripState] = useState<Trip>(demoTrip);
+  const setTrip = useCallback((newTrip: Trip) => {
+    setTripState(sanitizeTrip(newTrip));
+  }, []);
   const [buffetIncluded, setBuffetIncluded] = useState(false);
   const [savedDestinationIds, setSavedDestinationIds] = useState<string[]>(["jaipur", "udaipur"]);
   const [expenses, setExpenses] = useState<PlannerContextValue["expenses"]>([]);
@@ -102,7 +194,7 @@ export function TripPlannerProvider({ children }: { children: ReactNode }) {
       budgetService.toggleBuffet(trip.id).catch(() => {});
     },
     updateTripBasics: (updates) => {
-      setTrip((current) => ({ ...current, ...updates }));
+      setTripState((current) => ({ ...current, ...updates }));
       tripService.update(trip.id, updates).catch(() => {});
     },
     savedDestinationIds,
@@ -123,9 +215,9 @@ export function TripPlannerProvider({ children }: { children: ReactNode }) {
     addActivity: (stopId, dayId, idea, time = "15:00") => {
       const tempActivityId = `activity-${Date.now()}`;
       const activity: Activity = { id: tempActivityId, time, ...idea };
-      setTrip((current) => ({
+      setTripState((current: Trip) => ({
         ...current,
-        stops: current.stops.map((stop) =>
+        stops: current.stops.map((stop: TripStop) =>
           stop.id !== stopId
             ? stop
             : {
@@ -153,9 +245,9 @@ export function TripPlannerProvider({ children }: { children: ReactNode }) {
         .catch(() => {});
     },
     deleteActivity: (dayId, activityId) => {
-      setTrip((current) => ({
+      setTripState((current: Trip) => ({
         ...current,
-        stops: current.stops.map((stop) => ({
+        stops: current.stops.map((stop: TripStop) => ({
           ...stop,
           days: stop.days.map((day) =>
             day.id !== dayId
@@ -171,9 +263,9 @@ export function TripPlannerProvider({ children }: { children: ReactNode }) {
       }
     },
     duplicateActivity: (dayId, activityId) => {
-      setTrip((current) => ({
+      setTripState((current: Trip) => ({
         ...current,
-        stops: current.stops.map((stop) => ({
+        stops: current.stops.map((stop: TripStop) => ({
           ...stop,
           days: stop.days.map((day) => {
             if (day.id !== dayId) return day;
@@ -197,9 +289,9 @@ export function TripPlannerProvider({ children }: { children: ReactNode }) {
       }
     },
     moveActivity: (sourceDayId, activityId, targetDayId, targetIndex) => {
-      setTrip((current) => {
+      setTripState((current: Trip) => {
         let moving: Activity | undefined;
-        const withoutSource = current.stops.map((stop) => ({
+        const withoutSource = current.stops.map((stop: TripStop) => ({
           ...stop,
           days: stop.days.map((day) => {
             if (day.id !== sourceDayId) return day;
@@ -210,7 +302,7 @@ export function TripPlannerProvider({ children }: { children: ReactNode }) {
         if (!moving) return current;
         return {
           ...current,
-          stops: withoutSource.map((stop) => ({
+          stops: withoutSource.map((stop: TripStop) => ({
             ...stop,
             days: stop.days.map((day) => {
               if (day.id !== targetDayId) return day;
@@ -228,9 +320,9 @@ export function TripPlannerProvider({ children }: { children: ReactNode }) {
       }
     },
     reorderStops: (sourceId, targetId) =>
-      setTrip((current) => ({ ...current, stops: orderItems(current.stops, sourceId, targetId) })),
+      setTripState((current: Trip) => ({ ...current, stops: orderItems(current.stops, sourceId, targetId) })),
     reorderStopIndex: (fromIndex, toIndex) =>
-      setTrip((current) => {
+      setTripState((current: Trip) => {
         if (fromIndex < 0 || toIndex < 0 || fromIndex >= current.stops.length || toIndex >= current.stops.length) {
           return current;
         }
@@ -240,7 +332,7 @@ export function TripPlannerProvider({ children }: { children: ReactNode }) {
         return { ...current, stops: updated };
       }),
     addStop: (city) => {
-      const stopObj = {
+      const stopObj: TripStop = {
         ...city,
         id: `${city.city.toLowerCase().replaceAll(" ", "-")}-${Date.now()}`,
         color: "#FF6550",
@@ -254,7 +346,7 @@ export function TripPlannerProvider({ children }: { children: ReactNode }) {
           },
         ],
       };
-      setTrip((current) => ({
+      setTripState((current: Trip) => ({
         ...current,
         stops: [...current.stops, stopObj],
       }));
@@ -270,8 +362,8 @@ export function TripPlannerProvider({ children }: { children: ReactNode }) {
         .catch(() => {});
     },
     removeStop: (stopId) => {
-      setTrip((current) =>
-        current.stops.length <= 1 ? current : { ...current, stops: current.stops.filter((stop) => stop.id !== stopId) }
+      setTripState((current: Trip) =>
+        current.stops.length <= 1 ? current : { ...current, stops: current.stops.filter((stop: TripStop) => stop.id !== stopId) }
       );
       const numId = parseInt(stopId, 10);
       if (!isNaN(numId)) {
