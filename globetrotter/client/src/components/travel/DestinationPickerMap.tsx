@@ -66,11 +66,32 @@ export function DestinationPickerMap({
   const [clickedLocation, setClickedLocation] = useState<GeocodedPlace | null>(null);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<L.Map | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
   const routeLayerRef = useRef<L.LayerGroup | null>(null);
   const arrowsLayerRef = useRef<L.LayerGroup | null>(null);
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Close search dropdown on click outside or ESC key
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setSearchResults([]);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSearchResults([]);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   // Debounced Place Search
   useEffect(() => {
@@ -397,7 +418,7 @@ export function DestinationPickerMap({
   return (
     <div className="destination-picker-workspace">
       {/* Search Header Bar */}
-      <div className="dest-search-container">
+      <div className="dest-search-container" ref={searchContainerRef}>
         <div className="dest-search-bar">
           <Search size={18} className="search-icon" />
           <input

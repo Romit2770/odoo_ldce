@@ -1888,7 +1888,10 @@ h1 em, h2 em, h1 .handwritten { color: var(--coral); font-style: normal; }
 /* Search Bar */
 .dest-search-container {
   position: relative;
-  z-index: 30;
+  width: 100%;
+  max-width: 520px;
+  z-index: 1200;
+  margin-bottom: 14px;
 }
 
 .dest-search-bar {
@@ -1935,16 +1938,17 @@ h1 em, h2 em, h1 .handwritten { color: var(--coral); font-style: normal; }
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  z-index: 2000;
+  width: 100%;
+  z-index: 2500;
   background: #ffffff !important;
   color: var(--ink);
   border: 2.5px solid var(--ink);
-  border-radius: 14px;
-  box-shadow: 0 12px 30px rgba(35, 48, 74, 0.25), 4px 6px 0 var(--ink);
-  padding: 8px;
-  max-height: 280px;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(35, 48, 74, 0.22), 3px 4px 0 var(--ink);
+  padding: 6px;
+  max-height: 270px;
   overflow-y: auto;
-  animation: slideUp 160ms ease;
+  animation: slideUp 140ms ease;
 }
 
 .dropdown-header {
