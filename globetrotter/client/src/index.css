@@ -1935,12 +1935,14 @@ h1 em, h2 em, h1 .handwritten { color: var(--coral); font-style: normal; }
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  background: #ffffff;
-  border: 2px solid var(--ink);
-  border-radius: 12px;
-  box-shadow: 4px 6px 0 var(--ink);
+  z-index: 2000;
+  background: #ffffff !important;
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(35, 48, 74, 0.25), 4px 6px 0 var(--ink);
   padding: 8px;
-  max-height: 260px;
+  max-height: 280px;
   overflow-y: auto;
   animation: slideUp 160ms ease;
 }
@@ -1950,8 +1952,10 @@ h1 em, h2 em, h1 .handwritten { color: var(--coral); font-style: normal; }
   font-size: 8px;
   font-weight: 900;
   letter-spacing: 0.1em;
-  color: #8495a8;
+  color: #7b8c9f;
   padding: 4px 8px 6px;
+  border-bottom: 1px dashed #e2e8f0;
+  margin-bottom: 4px;
 }
 
 .search-result-item {
@@ -1959,10 +1963,11 @@ h1 em, h2 em, h1 .handwritten { color: var(--coral); font-style: normal; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 9px 12px;
   border: 1.5px solid transparent;
-  border-radius: 8px;
+  border-radius: 9px;
   background: #fffdf8;
+  color: var(--ink);
   text-align: left;
   cursor: pointer;
   transition: all 120ms ease;
@@ -1970,16 +1975,16 @@ h1 em, h2 em, h1 .handwritten { color: var(--coral); font-style: normal; }
 }
 
 .search-result-item:hover {
-  background: #fff3cf;
+  background: #fff4d6;
   border-color: var(--ink);
   transform: translateX(2px);
 }
 
 .result-icon-box {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border: 1.5px solid var(--ink);
-  border-radius: 6px;
+  border-radius: 7px;
   background: #d4f0ea;
   display: grid;
   place-items: center;
@@ -1989,6 +1994,7 @@ h1 em, h2 em, h1 .handwritten { color: var(--coral); font-style: normal; }
 
 .result-text-box {
   flex: 1;
+  min-width: 0;
 }
 
 .result-text-box strong {
@@ -1996,16 +2002,183 @@ h1 em, h2 em, h1 .handwritten { color: var(--coral); font-style: normal; }
   font-size: 13px;
   color: var(--ink);
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .result-text-box small {
+  display: block;
   font-size: 10px;
-  color: #68798d;
+  color: #55677b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.add-glyph {
-  color: var(--coral);
+.add-status-badge {
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 6px;
   flex-shrink: 0;
+  transition: all 120ms ease;
+}
+
+.add-status-badge.is-action {
+  background: var(--coral);
+  color: #ffffff;
+  border: 1.5px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+}
+
+.add-status-badge.is-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.add-status-badge.is-added {
+  background: #d4f0ea;
+  color: #065f46;
+  border: 1.5px solid #059669;
+}
+
+/* Direction Arrows on Map */
+.custom-arrow-div-icon {
+  background: transparent;
+  border: 0;
+}
+
+.route-direction-arrow {
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 2px 3px rgba(35, 48, 74, 0.4));
+  pointer-events: none;
+}
+
+/* Marker Types */
+.marker-type-tag {
+  display: block;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7b8c9f;
+  margin-bottom: 1px;
+}
+
+.marker-start .marker-badge {
+  background: #10b981 !important;
+  color: #ffffff !important;
+}
+
+.marker-start .marker-type-tag {
+  color: #059669 !important;
+}
+
+.marker-end .marker-badge {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+.marker-end .marker-type-tag {
+  color: #dc2626 !important;
+}
+
+.marker-stop .marker-badge {
+  background: #23304a !important;
+  color: #ffffff !important;
+}
+
+/* Route Legs Strip in Map Footer */
+.route-legs-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.leg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--ink);
+  border-left-width: 4px;
+  border-radius: 4px;
+  background: #fffdf8;
+  font-size: 8px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.leg-chip i {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+/* Destination List Row enhancements */
+.dest-stop-row.row-start {
+  border-left: 4px solid #10b981;
+}
+
+.dest-stop-row.row-end {
+  border-left: 4px solid #ef4444;
+}
+
+.stop-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stop-role-badge {
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--ink);
+  text-transform: uppercase;
+}
+
+.stop-role-badge.role-start {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #059669;
+}
+
+.stop-role-badge.role-end {
+  background: #ffe4e6;
+  color: #9f1239;
+  border-color: #e11d48;
+}
+
+.picker-recenter-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  background: #ffffff;
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  padding: 5px 7px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  transition: transform 100ms ease;
+}
+
+.picker-recenter-btn:hover {
+  transform: translateY(-1px);
 }
 
 /* Interactive Split Grid */

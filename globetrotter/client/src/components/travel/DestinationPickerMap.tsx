@@ -1,7 +1,7 @@
 /**
  * DestinationPickerMap — New Trip Flow Step 2 (Destinations)
- * Combines real-time place search, interactive geographic map,
- * destination reordering, and live road routing.
+ * Combines real-time place search, interactive multi-leg road map,
+ * distinct Start/Stop/End markers, directional arrows, and live route calculation.
  */
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -13,6 +13,7 @@ import {
   Check,
   Compass,
   GripVertical,
+  Layers,
   Loader2,
   MapPin,
   Maximize2,
@@ -32,9 +33,12 @@ import {
   reverseGeocode,
   calculateDrivingRoute,
   resolveDestinationCoordinates,
+  calculateBearing,
   type GeocodedPlace,
   type CalculatedRoute,
+  type RouteLeg,
   formatDurationHours,
+  LEG_COLORS,
 } from "@/services/map/mapService";
 
 type DestinationPickerMapProps = {
@@ -56,6 +60,7 @@ export function DestinationPickerMap({
   const [selectedStopId, setSelectedStopId] = useState<string | null>(stops[0]?.id || null);
   const [routeData, setRouteData] = useState<CalculatedRoute | null>(null);
   const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
+  const [hoveredLegIndex, setHoveredLegIndex] = useState<number | null>(null);
 
   // Click-to-add custom location state
   const [clickedLocation, setClickedLocation] = useState<GeocodedPlace | null>(null);
@@ -63,8 +68,8 @@ export function DestinationPickerMap({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<L.Map | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
-  const routeLayerRef = useRef<L.Polyline | null>(null);
-  const glowLayerRef = useRef<L.Polyline | null>(null);
+  const routeLayerRef = useRef<L.LayerGroup | null>(null);
+  const arrowsLayerRef = useRef<L.LayerGroup | null>(null);
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debounced Place Search
@@ -90,7 +95,7 @@ export function DestinationPickerMap({
       } finally {
         setIsSearching(false);
       }
-    }, 280);
+    }, 250);
 
     return () => {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
@@ -103,8 +108,8 @@ export function DestinationPickerMap({
     if (leafletMapRef.current) return;
 
     const map = L.map(mapContainerRef.current, {
-      center: [19.0, 75.0],
-      zoom: 6,
+      center: [20.5937, 78.9629], // Center of India
+      zoom: 5,
       zoomControl: false,
       attributionControl: false,
     });
@@ -117,10 +122,12 @@ export function DestinationPickerMap({
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
+    routeLayerRef.current = L.layerGroup().addTo(map);
+    arrowsLayerRef.current = L.layerGroup().addTo(map);
     markersLayerRef.current = L.layerGroup().addTo(map);
     leafletMapRef.current = map;
 
-    // Click anywhere on map to reverse geocode and prompt adding destination
+    // Click anywhere on map to reverse geocode
     map.on("click", async (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
       const place = await reverseGeocode(lat, lng);
@@ -133,27 +140,18 @@ export function DestinationPickerMap({
     };
   }, []);
 
-  // Update Route and Markers when stops change
+  // Update Route, Directional Arrows, and Markers when stops change
   useEffect(() => {
     const map = leafletMapRef.current;
     if (!map) return;
 
-    if (markersLayerRef.current) {
-      markersLayerRef.current.clearLayers();
-    }
-
-    if (routeLayerRef.current) {
-      map.removeLayer(routeLayerRef.current);
-      routeLayerRef.current = null;
-    }
-    if (glowLayerRef.current) {
-      map.removeLayer(glowLayerRef.current);
-      glowLayerRef.current = null;
-    }
+    if (markersLayerRef.current) markersLayerRef.current.clearLayers();
+    if (routeLayerRef.current) routeLayerRef.current.clearLayers();
+    if (arrowsLayerRef.current) arrowsLayerRef.current.clearLayers();
 
     const validStops = stops.filter((s) => s.latitude && s.longitude);
 
-    // Calculate real driving route
+    // Calculate multi-leg real road route in exact sequence
     if (validStops.length >= 2) {
       setIsCalculatingRoute(true);
       calculateDrivingRoute(
@@ -167,46 +165,116 @@ export function DestinationPickerMap({
           setRouteData(res);
           setIsCalculatingRoute(false);
 
-          if (res.coordinates.length > 0) {
-            const latLngs: L.LatLngExpression[] = res.coordinates.map((c) => [c[0], c[1]]);
+          if (!routeLayerRef.current || !arrowsLayerRef.current) return;
+          routeLayerRef.current.clearLayers();
+          arrowsLayerRef.current.clearLayers();
 
-            // Outer glow
-            glowLayerRef.current = L.polyline(latLngs, {
-              color: "rgba(255, 101, 80, 0.3)",
+          // Render each distinct route leg with its individual color
+          res.legs.forEach((leg, legIdx) => {
+            if (leg.coordinates.length < 2) return;
+
+            const latLngs: L.LatLngExpression[] = leg.coordinates.map((c) => [c[0], c[1]]);
+            const legColor = leg.color || LEG_COLORS[legIdx % LEG_COLORS.length];
+
+            // Outer glow line
+            const glowLine = L.polyline(latLngs, {
+              color: legColor,
               weight: 9,
+              opacity: 0.3,
               lineCap: "round",
-            }).addTo(map);
+              lineJoin: "round",
+            });
 
-            // Core line
-            routeLayerRef.current = L.polyline(latLngs, {
-              color: "#FF6550",
-              weight: 4,
-              dashArray: "6, 6",
+            // Core road polyline
+            const coreLine = L.polyline(latLngs, {
+              color: legColor,
+              weight: 4.5,
+              opacity: 0.95,
+              lineCap: "round",
+              lineJoin: "round",
+              dashArray: "7, 7",
               className: "leaflet-animated-route",
-            }).addTo(map);
-          }
+            });
+
+            // Popup with leg details
+            coreLine.bindPopup(
+              `<div class="atlas-marker-popup">
+                <div class="popup-head">
+                  <span class="popup-tag" style="color: ${legColor};">Leg ${legIdx + 1}</span>
+                  <h4>${leg.fromName} → ${leg.toName}</h4>
+                </div>
+                <p class="popup-dates">🚗 ${leg.distanceKm} km · approx ${formatDurationHours(leg.durationMinutes)}</p>
+              </div>`,
+              { closeButton: false }
+            );
+
+            routeLayerRef.current?.addLayer(glowLine);
+            routeLayerRef.current?.addLayer(coreLine);
+
+            // Add directional arrows along the leg at 33% and 66% points
+            const sampleIndices = [
+              Math.floor(leg.coordinates.length * 0.33),
+              Math.floor(leg.coordinates.length * 0.66),
+            ];
+
+            sampleIndices.forEach((idx) => {
+              if (idx > 0 && idx < leg.coordinates.length - 1) {
+                const p1 = leg.coordinates[idx];
+                const p2 = leg.coordinates[idx + 1];
+                const bearing = calculateBearing(p1[0], p1[1], p2[0], p2[1]);
+
+                const arrowHtml = `
+                  <div class="route-direction-arrow" style="transform: rotate(${bearing}deg);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="${legColor}" stroke="#23304A" stroke-width="1.5">
+                      <path d="M12 2L19 21L12 17L5 21L12 2Z" />
+                    </svg>
+                  </div>
+                `;
+
+                const arrowIcon = L.divIcon({
+                  html: arrowHtml,
+                  className: "custom-arrow-div-icon",
+                  iconSize: [14, 14],
+                  iconAnchor: [7, 7],
+                });
+
+                const arrowMarker = L.marker([p1[0], p1[1]], {
+                  icon: arrowIcon,
+                  interactive: false,
+                });
+                arrowsLayerRef.current?.addLayer(arrowMarker);
+              }
+            });
+          });
         })
         .catch(() => setIsCalculatingRoute(false));
     } else {
       setRouteData(null);
     }
 
-    // Add Markers
+    // Add Start, Stop, and End Markers strictly by ordered array index
     const bounds = L.latLngBounds([]);
 
     validStops.forEach((stop, index) => {
       const latLng = L.latLng(stop.latitude!, stop.longitude!);
       bounds.extend(latLng);
 
+      const isFirst = index === 0;
+      const isLast = index === validStops.length - 1 && validStops.length > 1;
       const orderNum = String(index + 1).padStart(2, "0");
       const isSelected = selectedStopId === stop.id;
 
+      const markerTypeClass = isFirst ? "marker-start" : isLast ? "marker-end" : "marker-stop";
+      const tagLabel = isFirst ? "START" : isLast ? "END" : `STOP ${orderNum}`;
+
       const markerHtml = `
-        <div class="atlas-real-marker ${isSelected ? "is-selected" : ""}">
+        <div class="atlas-real-marker ${markerTypeClass} ${isSelected ? "is-selected" : ""}">
+          <div class="marker-pulse-ring"></div>
           <div class="marker-badge">
             <span class="marker-order">${orderNum}</span>
           </div>
           <div class="marker-flag">
+            <span class="marker-type-tag">${tagLabel}</span>
             <span class="marker-city">${stop.city}</span>
           </div>
         </div>
@@ -215,8 +283,8 @@ export function DestinationPickerMap({
       const customIcon = L.divIcon({
         html: markerHtml,
         className: "custom-atlas-div-icon",
-        iconSize: [36, 36],
-        iconAnchor: [18, 32],
+        iconSize: [44, 44],
+        iconAnchor: [22, 38],
       });
 
       const marker = L.marker(latLng, { icon: customIcon });
@@ -232,7 +300,7 @@ export function DestinationPickerMap({
 
     // Auto-fit bounds
     if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
+      map.fitBounds(bounds, { padding: [45, 45], maxZoom: 10 });
     }
   }, [stops, selectedStopId]);
 
@@ -268,7 +336,7 @@ export function DestinationPickerMap({
     setSearchResults([]);
 
     if (leafletMapRef.current) {
-      leafletMapRef.current.flyTo([place.latitude, place.longitude], 9, { duration: 1.2 });
+      leafletMapRef.current.flyTo([place.latitude, place.longitude], 8.5, { duration: 1.2 });
     }
   };
 
@@ -316,6 +384,16 @@ export function DestinationPickerMap({
     }
   };
 
+  const handleRecenter = () => {
+    if (!leafletMapRef.current) return;
+    const valid = stops.filter((s) => s.latitude && s.longitude);
+    if (valid.length === 0) return;
+    const bounds = L.latLngBounds(valid.map((s) => [s.latitude!, s.longitude!]));
+    if (bounds.isValid()) {
+      leafletMapRef.current.fitBounds(bounds, { padding: [45, 45], maxZoom: 10 });
+    }
+  };
+
   return (
     <div className="destination-picker-workspace">
       {/* Search Header Bar */}
@@ -325,7 +403,7 @@ export function DestinationPickerMap({
           <input
             type="text"
             className="dest-search-input"
-            placeholder="Search a city, place or landmark (e.g. Mumbai, Goa, Jaipur, Paris)..."
+            placeholder="Search a city, place or landmark (e.g. Surat, Mumbai, Goa, Jaipur, Paris)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -344,32 +422,52 @@ export function DestinationPickerMap({
           )}
         </div>
 
-        {/* Search Results Autocomplete Dropdown */}
+        {/* High-Contrast Search Results Dropdown */}
         {searchResults.length > 0 && (
           <div className="dest-search-dropdown">
             <span className="dropdown-header">MATCHING DESTINATIONS</span>
-            {searchResults.map((result) => (
-              <button
-                key={result.id}
-                type="button"
-                className="search-result-item"
-                onClick={() => handleSelectSearchResult(result)}
-              >
-                <div className="result-icon-box">
-                  <MapPin size={16} />
+            {searchResults.map((result) => {
+              const isAlreadyAdded = stops.some(
+                (s) => s.city.toLowerCase() === result.city.toLowerCase()
+              );
+
+              return (
+                <div
+                  key={result.id}
+                  className="search-result-item"
+                  onClick={() => handleSelectSearchResult(result)}
+                >
+                  <div className="result-icon-box">
+                    <MapPin size={16} />
+                  </div>
+                  <div className="result-text-box">
+                    <strong>{result.name}</strong>
+                    <small>{result.fullName}</small>
+                  </div>
+                  {isAlreadyAdded ? (
+                    <span className="add-status-badge is-added">
+                      <Check size={13} /> Added
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="add-status-badge is-action"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectSearchResult(result);
+                      }}
+                    >
+                      <Plus size={13} /> Add to route
+                    </button>
+                  )}
                 </div>
-                <div className="result-text-box">
-                  <strong>{result.name}</strong>
-                  <small>{result.fullName}</small>
-                </div>
-                <Plus size={16} className="add-glyph" />
-              </button>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Main Split Grid: Map on Left/Center, Destinations List on Right */}
+      {/* Main Split Grid: Map on Left, Destinations List on Right */}
       <div className="dest-interactive-grid">
         {/* Real Interactive Map Canvas */}
         <div className="dest-map-viewport">
@@ -380,6 +478,15 @@ export function DestinationPickerMap({
             <Sparkles size={13} />
             <span>Interactive Road Map · Click anywhere to drop a pin</span>
           </div>
+
+          <button
+            type="button"
+            className="picker-recenter-btn"
+            onClick={handleRecenter}
+            title="Fit all destinations in view"
+          >
+            <Maximize2 size={14} />
+          </button>
 
           {/* Prompt if map was clicked */}
           {clickedLocation && (
@@ -408,14 +515,34 @@ export function DestinationPickerMap({
             </div>
           )}
 
-          {/* Live Route Summary Pill */}
+          {/* Live Multi-Leg Route Summary Bar */}
           {routeData && routeData.totalDistanceKm > 0 && (
             <div className="picker-route-stats">
-              <RouteIcon size={14} className="text-coral" />
-              <span>
-                <strong>{routeData.totalDistanceKm} km</strong> driving route · approx{" "}
-                {formatDurationHours(routeData.totalDurationMinutes)}
-              </span>
+              <div className="route-stats-header">
+                <RouteIcon size={14} className="text-coral" />
+                <span>
+                  <strong>{routeData.totalDistanceKm} km</strong> driving route · approx{" "}
+                  {formatDurationHours(routeData.totalDurationMinutes)}
+                </span>
+                {isCalculatingRoute && <Loader2 size={12} className="animate-spin text-coral" />}
+              </div>
+
+              {/* Legs mini-strip */}
+              {routeData.legs.length > 1 && (
+                <div className="route-legs-strip">
+                  {routeData.legs.map((leg, idx) => (
+                    <span
+                      key={`${leg.fromName}-${leg.toName}-${idx}`}
+                      className="leg-chip"
+                      style={{ borderLeftColor: leg.color }}
+                      title={`${leg.fromName} → ${leg.toName}: ${leg.distanceKm} km`}
+                    >
+                      <i style={{ background: leg.color }} />
+                      <b>{idx + 1}</b> {leg.fromName} → {leg.toName} ({leg.distanceKm} km)
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -433,7 +560,8 @@ export function DestinationPickerMap({
           </div>
 
           <p className="pane-hint">
-            Drag or use arrows to change travel order. The road route automatically recalculates!
+            The route connects strictly from <b>Start (01)</b> to <b>End</b>. Use arrows to reorder
+            and the road route recalculates automatically!
           </p>
 
           <div className="dest-stops-list">
@@ -446,19 +574,30 @@ export function DestinationPickerMap({
             ) : (
               stops.map((stop, index) => {
                 const isFirst = index === 0;
-                const isLast = index === stops.length - 1;
+                const isLast = index === stops.length - 1 && stops.length > 1;
                 const isSelected = selectedStopId === stop.id;
+                const roleBadge = isFirst ? "START" : isLast ? "END" : `STOP ${index + 1}`;
+                const legColor = LEG_COLORS[index % LEG_COLORS.length];
 
                 return (
                   <div
                     key={stop.id || `${stop.city}-${index}`}
-                    className={`dest-stop-row ${isSelected ? "is-selected" : ""}`}
+                    className={`dest-stop-row ${isSelected ? "is-selected" : ""} ${
+                      isFirst ? "row-start" : isLast ? "row-end" : ""
+                    }`}
                     onClick={() => handleFocusStop(stop)}
                   >
-                    <span className="stop-num">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="stop-num" style={{ borderColor: isFirst ? "#10B981" : isLast ? "#FF6550" : "var(--ink)" }}>
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
 
                     <div className="stop-details">
-                      <strong>{stop.city}</strong>
+                      <div className="stop-title-row">
+                        <strong>{stop.city}</strong>
+                        <span className={`stop-role-badge ${isFirst ? "role-start" : isLast ? "role-end" : ""}`}>
+                          {roleBadge}
+                        </span>
+                      </div>
                       <small>{stop.region ? `${stop.region}, ${stop.country}` : stop.country}</small>
                     </div>
 
@@ -475,7 +614,7 @@ export function DestinationPickerMap({
                       <button
                         type="button"
                         className="order-btn"
-                        disabled={isLast}
+                        disabled={index === stops.length - 1}
                         onClick={() => onReorderStops(index, index + 1)}
                         title="Move Down"
                       >

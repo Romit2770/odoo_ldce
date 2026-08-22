@@ -3,8 +3,8 @@
  *
  * State A (Default): The beloved Storybook Atlas illustrated / cartoon map.
  * State B (Hover / Tap): Smoothly transforms into a REAL geographic interactive map
- * with actual road routing (OSRM / Mapbox), custom GlobeTrotter numbered markers,
- * progressive route drawing, and auto-fitting bounds.
+ * with multi-leg shortest road routing (OSRM / Mapbox), distinct Start/Stop/End markers,
+ * directional arrows, and auto-fitting bounds.
  */
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
@@ -27,7 +27,11 @@ import type { TripStop } from "@/domain/trip";
 import {
   calculateDrivingRoute,
   resolveDestinationCoordinates,
+  calculateBearing,
   type CalculatedRoute,
+  type RouteLeg,
+  formatDurationHours,
+  LEG_COLORS,
 } from "@/services/map/mapService";
 
 type StorybookAtlasMapProps = {
@@ -45,18 +49,17 @@ export function StorybookAtlasMap({
   onSelectStop,
   className = "",
 }: StorybookAtlasMapProps) {
-  // State: illustrated vs real map mode
   const [isRealMapActive, setIsRealMapActive] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [routeData, setRouteData] = useState<CalculatedRoute | null>(null);
   const [isLoadingRoute, setIsLoadingRoute] = useState(false);
-  const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<L.Map | null>(null);
-  const polylineLayerRef = useRef<L.Polyline | null>(null);
+  const routeLayerRef = useRef<L.LayerGroup | null>(null);
+  const arrowsLayerRef = useRef<L.LayerGroup | null>(null);
   const markersGroupRef = useRef<L.LayerGroup | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -91,7 +94,7 @@ export function StorybookAtlasMap({
     };
   }, [stops]);
 
-  // Calculate real road route whenever resolved stops change
+  // Calculate multi-leg real road route in exact sequence
   useEffect(() => {
     let isCancelled = false;
     if (resolvedStops.length < 2) {
@@ -130,28 +133,24 @@ export function StorybookAtlasMap({
     if (!mapContainerRef.current) return;
     if (leafletMapRef.current) return;
 
-    // Default view over India (Mumbai/Goa center)
     const map = L.map(mapContainerRef.current, {
-      center: [17.0, 73.5],
+      center: [19.0, 75.0],
       zoom: 6,
       zoomControl: false,
       attributionControl: false,
       scrollWheelZoom: true,
     });
 
-    // Warm, parchment-inspired CartoDB Voyager tile layer (complements Storybook Atlas palette)
+    // CartoDB Voyager tile layer
     L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
       maxZoom: 19,
       subdomains: "abcd",
     }).addTo(map);
 
-    // Zoom control at bottom-right
-    L.control
-      .zoom({
-        position: "bottomright",
-      })
-      .addTo(map);
+    L.control.zoom({ position: "bottomright" }).addTo(map);
 
+    routeLayerRef.current = L.layerGroup().addTo(map);
+    arrowsLayerRef.current = L.layerGroup().addTo(map);
     markersGroupRef.current = L.layerGroup().addTo(map);
     leafletMapRef.current = map;
     setIsMapReady(true);
@@ -162,50 +161,96 @@ export function StorybookAtlasMap({
     };
   }, []);
 
-  // Update Markers, Route line, and Auto-Fit bounds on Real Map
+  // Update Markers, Multi-Leg Route, Directional Arrows, and Auto-Fit bounds
   useEffect(() => {
     const map = leafletMapRef.current;
     if (!map || !isMapReady) return;
 
-    // Clear previous markers
-    if (markersGroupRef.current) {
-      markersGroupRef.current.clearLayers();
-    }
-
-    // Clear previous polyline
-    if (polylineLayerRef.current) {
-      map.removeLayer(polylineLayerRef.current);
-      polylineLayerRef.current = null;
-    }
+    if (markersGroupRef.current) markersGroupRef.current.clearLayers();
+    if (routeLayerRef.current) routeLayerRef.current.clearLayers();
+    if (arrowsLayerRef.current) arrowsLayerRef.current.clearLayers();
 
     const validStops = resolvedStops.filter((s) => s.latitude && s.longitude);
     if (validStops.length === 0) return;
 
-    // 1. Draw animated real road route
-    if (routeData && routeData.coordinates.length > 0) {
-      const latLngs: L.LatLngExpression[] = routeData.coordinates.map((c) => [c[0], c[1]]);
+    // 1. Draw distinct multi-leg real road routes
+    if (routeData && routeData.legs.length > 0) {
+      routeData.legs.forEach((leg, legIdx) => {
+        if (leg.coordinates.length < 2) return;
 
-      // Outer glow line
-      const glowLine = L.polyline(latLngs, {
-        color: "rgba(255, 101, 80, 0.35)",
-        weight: 10,
-        opacity: 0.8,
-        lineCap: "round",
-        lineJoin: "round",
-      }).addTo(markersGroupRef.current || map);
+        const latLngs: L.LatLngExpression[] = leg.coordinates.map((c) => [c[0], c[1]]);
+        const legColor = leg.color || LEG_COLORS[legIdx % LEG_COLORS.length];
 
-      // Core route line
-      const polyline = L.polyline(latLngs, {
-        color: "#FF6550", // Globe Coral
-        weight: 5,
-        opacity: 0.95,
-        lineCap: "round",
-        lineJoin: "round",
-        dashArray: "8, 8",
-        className: "leaflet-animated-route",
-      }).addTo(map);
+        // Glow line
+        const glowLine = L.polyline(latLngs, {
+          color: legColor,
+          weight: 9,
+          opacity: 0.3,
+          lineCap: "round",
+          lineJoin: "round",
+        });
 
-      polylineLayerRef.current = polyline;
+        // Core road polyline
+        const coreLine = L.polyline(latLngs, {
+          color: legColor,
+          weight: 5,
+          opacity: 0.95,
+          lineCap: "round",
+          lineJoin: "round",
+          dashArray: "8, 8",
+          className: "leaflet-animated-route",
+        });
+
+        // Popup
+        coreLine.bindPopup(
+          `<div class="atlas-marker-popup">
+            <div class="popup-head">
+              <span class="popup-tag" style="color: ${legColor};">Leg ${legIdx + 1}</span>
+              <h4>${leg.fromName} → ${leg.toName}</h4>
+            </div>
+            <p class="popup-dates">🚗 ${leg.distanceKm} km · approx ${formatDurationHours(leg.durationMinutes)}</p>
+          </div>`,
+          { closeButton: false }
+        );
+
+        routeLayerRef.current?.addLayer(glowLine);
+        routeLayerRef.current?.addLayer(coreLine);
+
+        // Directional arrowheads along the leg
+        const sampleIndices = [
+          Math.floor(leg.coordinates.length * 0.33),
+          Math.floor(leg.coordinates.length * 0.66),
+        ];
+
+        sampleIndices.forEach((idx) => {
+          if (idx > 0 && idx < leg.coordinates.length - 1) {
+            const p1 = leg.coordinates[idx];
+            const p2 = leg.coordinates[idx + 1];
+            const bearing = calculateBearing(p1[0], p1[1], p2[0], p2[1]);
+
+            const arrowHtml = `
+              <div class="route-direction-arrow" style="transform: rotate(${bearing}deg);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="${legColor}" stroke="#23304A" stroke-width="1.5">
+                  <path d="M12 2L19 21L12 17L5 21L12 2Z" />
+                </svg>
+              </div>
+            `;
+
+            const arrowIcon = L.divIcon({
+              html: arrowHtml,
+              className: "custom-arrow-div-icon",
+              iconSize: [14, 14],
+              iconAnchor: [7, 7],
+            });
+
+            const arrowMarker = L.marker([p1[0], p1[1]], {
+              icon: arrowIcon,
+              interactive: false,
+            });
+            arrowsLayerRef.current?.addLayer(arrowMarker);
+          }
+        });
+      });
     }
 
     // 2. Add custom GlobeTrotter Storybook Atlas HTML markers
@@ -216,18 +261,20 @@ export function StorybookAtlasMap({
       bounds.extend(latLng);
 
       const isFirst = index === 0;
-      const isLast = index === validStops.length - 1;
+      const isLast = index === validStops.length - 1 && validStops.length > 1;
       const orderNum = String(index + 1).padStart(2, "0");
       const isSelected = activeStopId === stop.id;
+      const markerTypeClass = isFirst ? "marker-start" : isLast ? "marker-end" : "marker-stop";
+      const tagLabel = isFirst ? "START" : isLast ? "END" : `STOP ${orderNum}`;
 
-      // Custom Storybook Atlas Marker HTML
       const markerHtml = `
-        <div class="atlas-real-marker ${isSelected ? "is-selected" : ""} ${isFirst ? "marker-start" : ""} ${isLast ? "marker-end" : ""}">
+        <div class="atlas-real-marker ${markerTypeClass} ${isSelected ? "is-selected" : ""}">
           <div class="marker-pulse-ring"></div>
           <div class="marker-badge">
             <span class="marker-order">${orderNum}</span>
           </div>
           <div class="marker-flag">
+            <span class="marker-type-tag">${tagLabel}</span>
             <span class="marker-city">${stop.city}</span>
             <small class="marker-date">${stop.dateRange || `Stop ${index + 1}`}</small>
           </div>
@@ -244,11 +291,10 @@ export function StorybookAtlasMap({
 
       const marker = L.marker(latLng, { icon: customIcon });
 
-      // Popup with stop details
       const popupContent = `
         <div class="atlas-marker-popup">
           <div class="popup-head">
-            <span class="popup-tag">${isFirst ? "Starting Point" : isLast ? "Final Destination" : `Stop ${orderNum}`}</span>
+            <span class="popup-tag">${tagLabel}</span>
             <h4>${stop.city}</h4>
           </div>
           <p class="popup-dates">📅 ${stop.dateRange || "Scheduled stop"}</p>
@@ -266,7 +312,6 @@ export function StorybookAtlasMap({
       });
 
       marker.on("click", () => {
-        setActiveMarkerId(stop.id);
         if (onSelectStop) onSelectStop(stop.id);
         map.flyTo(latLng, Math.max(map.getZoom(), 9), {
           duration: 1.2,
@@ -279,11 +324,11 @@ export function StorybookAtlasMap({
       }
     });
 
-    // 3. Auto-fit bounds to encompass all destinations with comfortable padding
+    // 3. Auto-fit bounds
     if (bounds.isValid()) {
       map.fitBounds(bounds, {
         padding: [50, 50],
-        maxZoom: 11,
+        maxZoom: 10,
         animate: true,
       });
     }
@@ -310,7 +355,6 @@ export function StorybookAtlasMap({
     setIsHovered(true);
     setIsRealMapActive(true);
 
-    // Invalidate map size after transition to ensure crisp tile rendering
     setTimeout(() => {
       if (leafletMapRef.current) {
         leafletMapRef.current.invalidateSize();
@@ -341,11 +385,10 @@ export function StorybookAtlasMap({
     if (valid.length === 0) return;
     const bounds = L.latLngBounds(valid.map((s) => [s.latitude!, s.longitude!]));
     if (bounds.isValid()) {
-      leafletMapRef.current.fitBounds(bounds, { padding: [45, 45], maxZoom: 11 });
+      leafletMapRef.current.fitBounds(bounds, { padding: [45, 45], maxZoom: 10 });
     }
   };
 
-  // Route summary string
   const totalDistance = routeData?.totalDistanceKm || 590;
   const routeSummaryString = stops.map((s) => s.city).join(" → ");
 
@@ -359,7 +402,7 @@ export function StorybookAtlasMap({
       role="region"
       aria-label="Interactive trip map. Hover or tap to explore real geographic map."
     >
-      {/* Map Header with Distance & State Pill */}
+      {/* Map Header */}
       <div className="panel-heading">
         <div>
           <span className="eyebrow">Your route</span>
@@ -398,7 +441,7 @@ export function StorybookAtlasMap({
               className={`map-location ${index === 0 ? "mumbai" : index === 1 ? "goa" : "custom-stop"}`}
               key={stop.id || `${stop.city}-${index}`}
               style={{
-                left: index === 0 ? "20%" : index === stops.length - 1 ? "80%" : `${20 + (index * 60) / (stops.length - 1)}%`,
+                left: index === 0 ? "20%" : index === stops.length - 1 ? "80%" : `${20 + (index * 60) / Math.max(1, stops.length - 1)}%`,
                 top: index % 2 === 0 ? "25%" : "68%",
               }}
             >
@@ -474,7 +517,7 @@ export function StorybookAtlasMap({
             className={activeStopId === stop.id ? "active-foot-stop" : ""}
             onClick={() => onSelectStop && onSelectStop(stop.id)}
           >
-            <b>{stop.arrival || `Day ${index + 1}`}</b> {stop.city}
+            <b>{stop.arrival || `Stop ${index + 1}`}</b> {stop.city}
           </span>
         ))}
       </div>
