@@ -203,7 +203,38 @@ function vitePluginStorageProxy(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
+function vitePluginMongoApi(): Plugin {
+  return {
+    name: "vite-plugin-mongo-api",
+    async configureServer(server: ViteDevServer) {
+      try {
+        const { connectToDatabase } = await import("./server/db/mongodb.js");
+        await connectToDatabase();
+      } catch (e) {
+        console.warn("[Vite Dev] MongoDB connect error:", e);
+      }
+
+      const express = (await import("express")).default;
+      const { apiRouter } = await import("./server/routes/api.js");
+
+      const app = express();
+      app.use(express.json());
+      app.use(express.urlencoded({ extended: true }));
+      app.use(apiRouter);
+
+      server.middlewares.use("/api", app);
+    },
+  };
+}
+
+const plugins = [
+  react(),
+  tailwindcss(),
+  jsxLocPlugin(),
+  vitePluginManusRuntime(),
+  vitePluginManusDebugCollector(),
+  vitePluginMongoApi(),
+];
 
 export default defineConfig({
   plugins,

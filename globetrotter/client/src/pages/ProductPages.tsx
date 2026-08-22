@@ -12,6 +12,7 @@ import { DestinationPickerMap } from "@/components/travel/DestinationPickerMap";
 import { useTripPlanner } from "@/contexts/TripPlannerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { extractFirstName } from "@/lib/nameFormatter";
+import { ProfileSettingsView } from "@/components/profile/ProfileSettingsView";
 import { goaPhotoStory } from "@/domain/destinationPhotoStories";
 import { activityIdeas, cityCatalog, sampleTripSummaries, type ActivityIdea, type TripStatus } from "@/domain/trip";
 import { formatRupees, getAllActivities, getAllDays, getEstimatedCost, getExpenseBreakdown, getPlanningProgress } from "@/lib/tripMath";
@@ -598,11 +599,7 @@ export function SharePage() {
 }
 
 export function ProfileSettingsPage() {
-  const [pathname] = useLocation();
-  const settings = pathname === "/settings";
-  const [saved, setSaved] = useState(false);
-  const { savedDestinationIds } = useTripPlanner();
-  return <div className="page-stack profile-page"><PageIntro eyebrow={settings ? "Settings" : "Your profile"} title={settings ? "Make the travel desk" : "A few details,"} accent={settings ? "feel like home." : "a little more you."} description="These controls are kept locally for this frontend prototype; the visual structure is ready for future account preferences." action={<span className="ticket-label"><UserRound size={14} /> Mita’s travel desk</span>} /><section className="profile-layout"><aside className="profile-nav ink-card"><button className={!settings ? "active" : ""}>Profile</button><button className={settings ? "active" : ""}>Preferences</button><button>Saved destinations</button><button className="danger">Privacy</button></aside><form className="profile-form ink-card" onSubmit={(event) => { event.preventDefault(); setSaved(true); toast.success("Your local travel preferences are saved."); }}><div className="panel-heading"><div><span className="eyebrow">{settings ? "Preferences" : "Profile"}</span><h3>{settings ? "The way you like to travel" : "Your traveller card"}</h3></div><div className="profile-avatar">M</div></div>{settings ? <><div className="field-grid"><label><span>Currency</span><select defaultValue="INR"><option>INR (₹)</option><option>USD ($)</option><option>EUR (€)</option><option>GBP (£)</option></select></label><label><span>Language</span><select defaultValue="English"><option>English</option><option>Hindi</option><option>Spanish</option></select></label></div><label className="wide-field"><span>Travel style</span><div className="style-picker"><button type="button" className="active">Adventure</button><button type="button">Food</button><button type="button">Culture</button><button type="button">Slow travel</button></div></label><label className="wide-field"><span>Budget preference</span><select defaultValue="Balanced"><option>Easy on the wallet</option><option>Balanced</option><option>A little luxe</option></select></label></> : <><div className="field-grid"><label><span>Full name</span><input defaultValue="Mita Shah" /></label><label><span>Email</span><input defaultValue="mita@example.com" type="email" /></label></div><label className="wide-field"><span>Travel bio</span><textarea defaultValue="I collect coastlines, chai breaks, and itineraries with breathing room." /></label><div className="saved-place-box"><Heart size={19} /><div><strong>Saved destinations</strong><p>{savedDestinationIds.length ? `${savedDestinationIds.length} places pinned to your travel wish list.` : "Your travel wish list is empty."}</p></div><button type="button" className="text-action">View pins <ArrowRight size={14} /></button></div></>}<div className="form-footer"><button className="outlined-action" type="button">Cancel</button><button className="coral-button" type="submit">{saved ? <><Check size={16} /> Saved</> : "Save changes"}</button></div></form></section></div>;
+  return <ProfileSettingsView />;
 }
 
 export function AuthPage({ mode }: { mode: "login" | "register" | "forgot" }) {
