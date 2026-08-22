@@ -64,6 +64,40 @@ export type TripPhotoDocument = {
   createdAt: Date;
 };
 
+export type TripDocument = {
+  _id?: ObjectId;
+  id: string;
+  userId: string;
+  name: string;
+  dateRange: string;
+  startDate?: string;
+  endDate?: string;
+  duration: string;
+  description: string;
+  story?: string;
+  status: "Upcoming" | "Ongoing" | "Completed" | "Draft" | "Planned" | "Active";
+  budget: number;
+  estimatedCost: number;
+  travelStyle: string;
+  travelStyles?: string[];
+  startLocation?: string;
+  endLocation?: string;
+  baseExpenses?: Record<string, number>;
+  stops: any[];
+  route?: {
+    distance?: number;
+    duration?: number;
+    legs?: any[];
+  };
+  sharing?: {
+    enabled: boolean;
+    shareCode: string | null;
+    createdAt?: Date;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 let client: MongoClient | null = null;
 let db: Db | null = null;
 
@@ -91,6 +125,9 @@ export async function connectToDatabase(): Promise<{ db: Db; client: MongoClient
     await db.collection("saved_destinations").createIndex({ id: 1 }, { unique: true });
     await db.collection("trip_photos").createIndex({ userId: 1, tripId: 1 });
     await db.collection("trip_photos").createIndex({ id: 1 }, { unique: true });
+    await db.collection("trips").createIndex({ id: 1 }, { unique: true });
+    await db.collection("trips").createIndex({ userId: 1 });
+    await db.collection("trips").createIndex({ "sharing.shareCode": 1 }, { sparse: true });
 
     return { db, client };
   } catch (error) {
@@ -112,4 +149,9 @@ export async function getSavedDestinationsCollection(): Promise<Collection<Saved
 export async function getTripPhotosCollection(): Promise<Collection<TripPhotoDocument>> {
   const { db } = await connectToDatabase();
   return db.collection<TripPhotoDocument>("trip_photos");
+}
+
+export async function getTripsCollection(): Promise<Collection<TripDocument>> {
+  const { db } = await connectToDatabase();
+  return db.collection<TripDocument>("trips");
 }

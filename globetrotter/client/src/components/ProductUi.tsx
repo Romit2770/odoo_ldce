@@ -38,3 +38,17 @@ export function BackToTrips() {
   const [, setLocation] = useLocation();
   return <button className="soft-link" onClick={() => setLocation("/trips")}><ArrowRight size={15} style={{ transform: "rotate(180deg)" }} /> My trips</button>;
 }
+
+export function StatusPill({ status }: { status: string }) {
+  const normalized = status?.toLowerCase() || "upcoming";
+  const colorMap: Record<string, string> = {
+    upcoming: "status-upcoming",
+    planned: "status-upcoming",
+    ongoing: "status-ongoing",
+    active: "status-ongoing",
+    completed: "status-completed",
+    draft: "status-draft",
+  };
+  const className = `status-pill ${colorMap[normalized] || "status-upcoming"}`;
+  return <span className={className}>{status}</span>;
+}

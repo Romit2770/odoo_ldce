@@ -11,9 +11,11 @@ import {
   getUsersCollection,
   getSavedDestinationsCollection,
   getTripPhotosCollection,
+  getTripsCollection,
   type UserDocument,
   type SavedDestinationDocument,
   type TripPhotoDocument,
+  type TripDocument,
 } from "../db/mongodb.js";
 import { generateDiscoverRecommendations } from "../services/geminiService.js";
 
@@ -502,5 +504,289 @@ apiRouter.post("/discover/recommendations", requireAuth, async (req: Request, re
   } catch (error) {
     console.error("POST /api/discover/recommendations error", error);
     res.status(500).json({ error: "Failed to generate recommendations." });
+  }
+});
+
+// -------------------------------------------------------------
+// 7. Trip Persistence & Trip Sharing by Code APIs
+// -------------------------------------------------------------
+
+// Helper to generate a collision-resistant 6-char share code
+const SHARE_CODE_CHARS = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"; // excludes 0, O, 1, I for clarity
+
+async function generateUniqueShareCode(): Promise<string> {
+  const tripsCol = await getTripsCollection();
+  for (let attempt = 0; attempt < 10; attempt++) {
+    let code = "";
+    for (let i = 0; i < 6; i++) {
+      code += SHARE_CODE_CHARS.charAt(Math.floor(Math.random() * SHARE_CODE_CHARS.length));
+    }
+    const existing = await tripsCol.findOne({ "sharing.shareCode": code });
+    if (!existing) {
+      return code;
+    }
+  }
+  return `TRIP${Math.floor(1000 + Math.random() * 9000)}`;
+}
+
+// 7.1 GET all trips for the authenticated user
+apiRouter.get("/trips", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user as UserDocument;
+    const tripsCol = await getTripsCollection();
+
+    const trips = await tripsCol
+      .find({ userId: user.id })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    res.json(trips);
+  } catch (error) {
+    console.error("GET /api/trips error", error);
+    res.status(500).json({ error: "Failed to load trips." });
+  }
+});
+
+// 7.2 GET a single trip by ID (Strict ownership check)
+apiRouter.get("/trips/:tripId", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user as UserDocument;
+    const { tripId } = req.params;
+    const tripsCol = await getTripsCollection();
+
+    const trip = await tripsCol.findOne({ id: tripId, userId: user.id });
+    if (!trip) {
+      return res.status(404).json({ error: "Trip not found or permission denied." });
+    }
+
+    res.json(trip);
+  } catch (error) {
+    console.error("GET /api/trips/:tripId error", error);
+    res.status(500).json({ error: "Failed to load trip." });
+  }
+});
+
+// 7.3 POST Create a new trip in MongoDB
+apiRouter.post("/trips", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user as UserDocument;
+    const data = req.body;
+
+    const tripsCol = await getTripsCollection();
+
+    const tripId = data.id || `trip_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+    const newTrip: TripDocument = {
+      id: tripId,
+      userId: user.id,
+      name: data.name || "My Journey",
+      dateRange: data.dateRange || "15–20 Aug",
+      startDate: data.startDate,
+      endDate: data.endDate,
+      duration: data.duration || "5 days",
+      description: data.description || data.story || "",
+      story: data.story || data.description || "",
+      status: data.status || "Planned",
+      budget: Number(data.budget) || 25000,
+      estimatedCost: Number(data.estimatedCost) || 0,
+      travelStyle: data.travelStyle || "Adventure",
+      travelStyles: data.travelStyles || [data.travelStyle || "Adventure"],
+      startLocation: data.startLocation,
+      endLocation: data.endLocation,
+      baseExpenses: data.baseExpenses || { Transport: 6500, Accommodation: 12000, Food: 4500, Miscellaneous: 2000 },
+      stops: data.stops || [],
+      route: data.route,
+      sharing: {
+        enabled: false,
+        shareCode: null,
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Upsert or insert
+    await tripsCol.updateOne(
+      { id: tripId, userId: user.id },
+      { $set: newTrip },
+      { upsert: true }
+    );
+
+    res.status(201).json({ success: true, trip: newTrip });
+  } catch (error) {
+    console.error("POST /api/trips error", error);
+    res.status(500).json({ error: "Failed to create trip." });
+  }
+});
+
+// 7.4 PATCH Update an existing trip (Strict ownership)
+apiRouter.patch("/trips/:tripId", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user as UserDocument;
+    const { tripId } = req.params;
+    const updates = req.body;
+
+    const tripsCol = await getTripsCollection();
+    const existing = await tripsCol.findOne({ id: tripId, userId: user.id });
+
+    if (!existing) {
+      return res.status(404).json({ error: "Trip not found or permission denied." });
+    }
+
+    const { _id, id, userId, ...allowedUpdates } = updates;
+
+    await tripsCol.updateOne(
+      { id: tripId, userId: user.id },
+      {
+        $set: {
+          ...allowedUpdates,
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    const updated = await tripsCol.findOne({ id: tripId, userId: user.id });
+    res.json({ success: true, trip: updated });
+  } catch (error) {
+    console.error("PATCH /api/trips/:tripId error", error);
+    res.status(500).json({ error: "Failed to update trip." });
+  }
+});
+
+// 7.5 DELETE a trip (Strict ownership)
+apiRouter.delete("/trips/:tripId", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user as UserDocument;
+    const { tripId } = req.params;
+
+    const tripsCol = await getTripsCollection();
+    const result = await tripsCol.deleteOne({ id: tripId, userId: user.id });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "Trip not found or permission denied." });
+    }
+
+    res.json({ success: true, message: "Trip deleted successfully." });
+  } catch (error) {
+    console.error("DELETE /api/trips/:tripId error", error);
+    res.status(500).json({ error: "Failed to delete trip." });
+  }
+});
+
+// 7.6 POST Generate / Enable Share Code for a Trip
+apiRouter.post("/trips/:tripId/share", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user as UserDocument;
+    const { tripId } = req.params;
+    const tripsCol = await getTripsCollection();
+
+    const trip = await tripsCol.findOne({ id: tripId, userId: user.id });
+    if (!trip) {
+      return res.status(404).json({ error: "Trip not found or permission denied." });
+    }
+
+    let shareCode = trip.sharing?.shareCode;
+    if (!shareCode) {
+      shareCode = await generateUniqueShareCode();
+    }
+
+    await tripsCol.updateOne(
+      { id: tripId, userId: user.id },
+      {
+        $set: {
+          sharing: {
+            enabled: true,
+            shareCode,
+            createdAt: new Date(),
+          },
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    res.json({
+      success: true,
+      shareCode,
+      shareUrl: `/share/${shareCode}`,
+    });
+  } catch (error) {
+    console.error("POST /api/trips/:tripId/share error", error);
+    res.status(500).json({ error: "Failed to enable trip sharing." });
+  }
+});
+
+// 7.7 DELETE Disable Share Code for a Trip
+apiRouter.delete("/trips/:tripId/share", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user as UserDocument;
+    const { tripId } = req.params;
+    const tripsCol = await getTripsCollection();
+
+    const trip = await tripsCol.findOne({ id: tripId, userId: user.id });
+    if (!trip) {
+      return res.status(404).json({ error: "Trip not found or permission denied." });
+    }
+
+    await tripsCol.updateOne(
+      { id: tripId, userId: user.id },
+      {
+        $set: {
+          "sharing.enabled": false,
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    res.json({ success: true, message: "Trip sharing disabled." });
+  } catch (error) {
+    console.error("DELETE /api/trips/:tripId/share error", error);
+    res.status(500).json({ error: "Failed to disable trip sharing." });
+  }
+});
+
+// 7.8 GET Public Shared Trip by Share Code (NO AUTH REQUIRED, READ ONLY)
+apiRouter.get("/shared-trips/:shareCode", async (req: Request, res: Response) => {
+  try {
+    const shareCode = req.params.shareCode.trim().toUpperCase();
+    if (!shareCode || shareCode.length < 4 || shareCode.length > 12) {
+      return res.status(404).json({ error: "Invalid trip share code." });
+    }
+
+    const tripsCol = await getTripsCollection();
+    const trip = await tripsCol.findOne({
+      "sharing.shareCode": shareCode,
+      "sharing.enabled": true,
+    });
+
+    if (!trip) {
+      return res.status(404).json({ error: "Trip not found or sharing has been disabled." });
+    }
+
+    // Return ONLY sanitized public trip fields — NEVER expose userId, emails, passwords, private photos
+    const sanitizedTrip = {
+      id: trip.id,
+      name: trip.name,
+      dateRange: trip.dateRange,
+      duration: trip.duration,
+      description: trip.description || trip.story || "",
+      story: trip.story || trip.description || "",
+      status: trip.status || "Planned",
+      budget: trip.budget,
+      estimatedCost: trip.estimatedCost,
+      travelStyle: trip.travelStyle,
+      travelStyles: trip.travelStyles,
+      startLocation: trip.startLocation,
+      endLocation: trip.endLocation,
+      stops: trip.stops,
+      route: trip.route,
+      sharing: {
+        enabled: true,
+        shareCode: trip.sharing?.shareCode,
+      },
+    };
+
+    res.json(sanitizedTrip);
+  } catch (error) {
+    console.error("GET /api/shared-trips/:shareCode error", error);
+    res.status(500).json({ error: "Failed to load shared trip." });
   }
 });

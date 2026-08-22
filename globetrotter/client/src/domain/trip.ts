@@ -4,7 +4,7 @@
  */
 
 export type ActivityCategory = "Adventure" | "Sightseeing" | "Food" | "Culture" | "Nature" | "Nightlife";
-export type TripStatus = "Upcoming" | "Ongoing" | "Completed" | "Draft";
+export type TripStatus = "Upcoming" | "Ongoing" | "Completed" | "Draft" | "Planned" | "Active";
 export type TravelStyle = "Adventure" | "Relaxation" | "Culture" | "Food" | "Nature" | "Luxury" | "Budget" | "Family";
 export type ExpenseCategory = "Transport" | "Accommodation" | "Food" | "Activities" | "Miscellaneous";
 

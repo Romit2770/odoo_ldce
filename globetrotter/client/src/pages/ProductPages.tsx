@@ -15,12 +15,15 @@ import { extractFirstName } from "@/lib/nameFormatter";
 import { ProfileSettingsView } from "@/components/profile/ProfileSettingsView";
 import { DiscoverFeed } from "@/components/discover/DiscoverFeed";
 import { DestinationsManager } from "@/components/destinations/DestinationsManager";
+import { TripsListView } from "@/components/trips/TripsListView";
+import { PublicSharePage } from "@/components/trips/PublicSharePage";
+import { mongoTripService } from "@/services/api/mongoTripService";
 import { goaPhotoStory } from "@/domain/destinationPhotoStories";
 import { activityIdeas, cityCatalog, sampleTripSummaries, type ActivityIdea, type TripStatus } from "@/domain/trip";
 import { formatRupees, getAllActivities, getAllDays, getEstimatedCost, getExpenseBreakdown, getPlanningProgress } from "@/lib/tripMath";
 import { toast } from "sonner";
-import { useLocation } from "wouter";
-import { useMemo, useState, type DragEvent } from "react";
+import { useLocation, useRoute } from "wouter";
+import { useMemo, useState, useEffect, type DragEvent } from "react";
 import {
   ArrowRight, CalendarDays, Check, ChevronDown, ChevronRight, CircleDollarSign, ClipboardCopy, Compass,
   Copy, Crown, GripVertical, Heart, LayoutList, MapPin, MoreHorizontal, Pencil, PlaneTakeoff, Plus,
@@ -146,23 +149,43 @@ export function TripWizardPage() {
 
 export function TripWizardPage() {
   const [, setLocation] = useLocation();
-  const { trip, updateTripBasics, addStop, removeStop, reorderStopIndex } = useTripPlanner();
+  const { user } = useAuth();
+  const { trip, setTrip, updateTripBasics, addStop, removeStop, reorderStopIndex } = useTripPlanner();
   const [step, setStep] = useState(1);
   const [name, setName] = useState(trip.name);
   const [budget, setBudget] = useState(String(trip.budget));
   const [style, setStyle] = useState(trip.travelStyle);
   const [description, setDescription] = useState(trip.description);
+  const [isSaving, setIsSaving] = useState(false);
   const steps = ["Basics", "Destinations", "Activities", "Review"];
 
-  const finish = () => {
-    updateTripBasics({
-      name: name.trim() || "Goa Adventure",
+  const finish = async () => {
+    setIsSaving(true);
+    const newTripId = `trip_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const newTripData = {
+      ...trip,
+      id: newTripId,
+      name: name.trim() || "My New Journey",
       budget: Number(budget) || 25000,
       description,
+      story: description,
       travelStyle: style,
-    });
-    toast.success("Your trip basics are saved. The route is ready to shape.");
-    setLocation(`/trips/${trip.id}`);
+      status: "Planned" as const,
+    };
+
+    try {
+      const created = await mongoTripService.createTrip(newTripData, user);
+      setTrip(created);
+      toast.success(`"${created.name}" created and saved to MongoDB!`);
+      setLocation("/trips");
+    } catch (err: any) {
+      console.warn("Trip creation error:", err);
+      updateTripBasics(newTripData);
+      toast.success(`"${newTripData.name}" created!`);
+      setLocation("/trips");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const selectedRouteString = trip.stops.map((s) => s.city).join(" → ");
@@ -355,25 +378,7 @@ export function TripWizardPage() {
 }
 
 export function TripsPage() {
-  const [, setLocation] = useLocation();
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<TripStatus | "All">("All");
-  const [trips, setTrips] = useState(sampleTripSummaries);
-  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
-  const filtered = trips.filter((item) => (filter === "All" || item.status === filter) && `${item.name} ${item.route}`.toLowerCase().includes(query.toLowerCase()));
-  const deleteTrip = (id: string) => {
-    setTrips((items) => items.filter((item) => item.id !== id));
-    setPendingDelete(null);
-    toast.success("Trip tucked away from this demo journal.");
-  };
-
-  return <div className="page-stack trips-page">
-    <PageIntro eyebrow="My trips" title="Every good story" accent="needs a route." description="Keep upcoming, ongoing, completed, and still-scribbled adventures together in one tidy travel desk." action={<button className="coral-button" onClick={() => setLocation("/trips/new")}><Plus size={17} /> Plan a trip</button>} />
-    <section className="trip-filter-bar"><label className="search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search your travel journal" aria-label="Search trips" /></label><div className="filter-chips">{(["All", "Upcoming", "Ongoing", "Completed", "Draft"] as const).map((item) => <button key={item} className={filter === item ? "active" : ""} onClick={() => setFilter(item)}>{item}</button>)}</div><button className="sort-button"><Settings2 size={16} /> Newest first</button></section>
-    <RouteConnector label="routes waiting for you" />
-    <section className="trip-card-grid">{filtered.length === 0 ? <EmptyJournal title="Your travel journal is waiting for its first story." body="Try a different filter, or begin with a route that feels like you." actionLabel="Plan a trip" actionPath="/trips/new" /> : filtered.map((item) => <article className={`trip-management-card ${item.accent}`} key={item.id}><div className="trip-cover"><span className="ticket-label"><Route size={14} /> {item.route}</span><span className="cover-number">{item.progress}%</span></div><div className="trip-card-body"><div className="trip-card-title"><div><h2>{item.name}</h2><p>{item.dateRange} · {item.route.split("→").length} cities</p></div><StatusPill status={item.status} /></div><div className="trip-progress-row"><span>Route progress</span><div><i style={{ width: `${item.progress}%` }} /></div><b>{item.progress}%</b></div><div className="trip-card-meta"><span><CalendarDays size={14} /> 5 days</span><span><WalletCards size={14} /> {formatRupees(item.budget)}</span></div><div className="trip-card-actions"><button className="outlined-action" onClick={() => setLocation(item.id === "goa-adventure" ? "/trips/goa-adventure" : "/trips/new")}>View</button><button className="icon-text-button" onClick={() => toast.success("A copy has been started as a fresh draft.")}><Copy size={15} /> Duplicate</button><button className="icon-text-button danger" onClick={() => setPendingDelete(item.id)}><Trash2 size={15} /> Delete</button></div></div></article>)}</section>
-    <DemoDialog open={Boolean(pendingDelete)} title={`Delete ${trips.find((item) => item.id === pendingDelete)?.name ?? "this trip"}?`} body="This removes the trip from this local demo workspace. Persistent data controls will arrive with the future Odoo integration." confirmLabel="Delete trip" danger onConfirm={() => pendingDelete && deleteTrip(pendingDelete)} onClose={() => setPendingDelete(null)} />
-  </div>;
+  return <TripsListView />;
 }
 
 export function DiscoverPage() {
@@ -532,15 +537,39 @@ function LegacyTripOverviewPage() {
 }
 
 export function TripOverviewPage() {
-  const { trip, estimatedCost } = useTripPlanner();
+  const { trip, setTrip, estimatedCost } = useTripPlanner();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const [, params] = useRoute("/trips/:tripId");
+
+  useEffect(() => {
+    if (params?.tripId && params.tripId !== trip.id) {
+      mongoTripService
+        .getTripById(params.tripId, user)
+        .then((data) => setTrip(data))
+        .catch(() => {});
+    }
+  }, [params?.tripId, user]);
+
   const activities = getAllActivities(trip);
   return <div className="page-stack trip-overview-page atlas-overview-page"><BackToTrips /><PageIntro eyebrow="Trip overview" title={trip.name} accent="is ready for a closer look." description={trip.description} action={<div className="intro-actions"><button className="outlined-action" onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}><LayoutList size={17} /> Itinerary</button><button className="coral-button" onClick={() => setLocation(`/trips/${trip.id}/share`)}><Share2 size={17} /> Share</button></div>} /><TripTabs active="overview" /><section className="atlas-overview-hero"><AtlasRevealImage destinationName={goaPhotoStory.name} illustrationSrc={goaPhotoStory.illustrationSrc} realImageSrc={goaPhotoStory.realImageSrc} alt="Illustrated Goa coast and fort in the GlobeTrotter atlas" caption={goaPhotoStory.revealCaption} /><div className="atlas-overview-copy"><span className="ticket-label"><Route size={14} /> {trip.stops.map((stop) => stop.city).join(" → ")}</span><h2>{trip.dateRange}</h2><p>{trip.duration} · {trip.stops.length} city stops · {activities.length} planned moments</p><div className="overview-stat-row"><TripStat label="total budget" value={formatRupees(trip.budget)} icon={<WalletCards size={16} />} /><TripStat label="estimated" value={formatRupees(estimatedCost)} icon={<CircleDollarSign size={16} />} /><TripStat label="remaining" value={formatRupees(trip.budget - estimatedCost)} icon={<Sparkles size={16} />} /></div><p className="atlas-overview-note"><Sparkles size={14} /> Hover, focus, or tap the atlas scene to reveal Goa in real life.</p></div></section><section className="overview-grid"><article className="ink-card journey-overview-card"><div className="panel-heading"><div><span className="eyebrow">Journey timeline</span><h3>Every pin in order</h3></div><button className="text-action" onClick={() => setLocation(`/trips/${trip.id}/map`)}>Map <ArrowRight size={14} /></button></div><div className="overview-route">{trip.stops.map((stop, index) => <div key={stop.id}><span style={{ background: stop.color }}>{String(index + 1).padStart(2, "0")}</span><div><strong>{stop.city}</strong><small>{stop.country} · {stop.dateRange}</small></div>{index < trip.stops.length - 1 && <i />}</div>)}</div></article><article className="ink-card upcoming-card"><div className="panel-heading"><div><span className="eyebrow">Upcoming moments</span><h3>Next on the page</h3></div><button className="text-action" onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}>Edit <Pencil size={14} /></button></div>{activities.slice(0, 3).map((activity) => <div className="upcoming-row" key={activity.id}><span>{activity.time}</span><div><strong>{activity.name}</strong><small>{activity.location} · {activity.duration}</small></div><b>{activity.cost ? formatRupees(activity.cost) : "Free"}</b></div>)}</article></section><DestinationPhotoGallery story={goaPhotoStory} onAddExperiences={() => setLocation("/activities")} /></div>;
 }
 
 export function ItineraryPage() {
-  const { trip, estimatedCost, moveActivity, deleteActivity, duplicateActivity, reorderStops, removeStop } = useTripPlanner();
+  const { trip, setTrip, estimatedCost, moveActivity, deleteActivity, duplicateActivity, reorderStops, removeStop } = useTripPlanner();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const [, params] = useRoute("/trips/:tripId/itinerary");
+
+  useEffect(() => {
+    if (params?.tripId && params.tripId !== trip.id) {
+      mongoTripService
+        .getTripById(params.tripId, user)
+        .then((data) => setTrip(data))
+        .catch(() => {});
+    }
+  }, [params?.tripId, user]);
+
   const [dragging, setDragging] = useState<{ dayId: string; activityId: string } | null>(null);
   const [openDays, setOpenDays] = useState<string[]>(getAllDays(trip).map((day) => day.id));
   const toggleDay = (dayId: string) => setOpenDays((open) => open.includes(dayId) ? open.filter((id) => id !== dayId) : [...open, dayId]);
@@ -726,13 +755,7 @@ export function MapCalendarPage() {
 }
 
 export function SharePage() {
-  const { trip, estimatedCost } = useTripPlanner();
-  const [pathname, setLocation] = useLocation();
-  const [copied, setCopied] = useState(false);
-  const isPublic = pathname.includes("/shared/");
-  const link = "globetrotter.travel/s/goa-adventure";
-  const copyLink = () => { setCopied(true); toast.success("A shareable trip link is ready to paste."); };
-  return <div className="page-stack share-page">{!isPublic && <BackToTrips />}{!isPublic && <TripTabs active="share" />}<section className="share-hero"><div><span className="ticket-label"><Share2 size={15} /> {isPublic ? "Read-only route" : "Share your route"}</span><h1>{isPublic ? <>Goa Adventure<br />is a story worth <em>borrowing.</em></> : <>Your adventure is<br />ready to <em>share.</em></>}</h1><p>{isPublic ? "A read-only route through Mumbai and Goa, shared with enough detail to spark a version of your own." : "Send the route, the day plan, and the cost trail to people who should have a say before the group chat gets noisy."}</p><div className="share-url"><span>{link}</span><button onClick={isPublic ? () => { toast.success("A fresh copy is waiting in your travel desk."); setLocation("/trips/new"); } : copyLink}>{isPublic ? <><Copy size={16} /> Copy this trip</> : copied ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy link</>}</button></div></div><div className="share-pass"><span className="pass-holes" /><img src={brandLogo} alt="GlobeTrotter mark" /><span className="eyebrow">Your travel pass</span><h2>{trip.name}</h2><p>{trip.dateRange}</p><div><span>{trip.stops.length} stops</span><span>5 days</span><span>{getAllActivities(trip).length} moments</span></div><strong>GOA / 2026</strong></div></section><RouteConnector label="send the story onward" /><section className="share-preview-grid"><article className="ink-card share-itinerary-preview"><div className="panel-heading"><div><span className="eyebrow">Shared itinerary</span><h3>The route at a glance</h3></div><Route size={20} /></div>{trip.stops.map((stop) => <div key={stop.id}><strong>{stop.city}</strong><span>{stop.dateRange}</span><small>{stop.days.flatMap((day) => day.activities).slice(0, 2).map((activity) => activity.name).join(" · ")}</small></div>)}</article><article className="ink-card share-budget-preview"><div className="panel-heading"><div><span className="eyebrow">Budget snapshot</span><h3>{formatRupees(estimatedCost)}</h3></div><WalletCards size={20} /></div><p>Estimated from the shared activities and travel plan.</p><div className="mini-budget-track"><i style={{ width: `${Math.round((estimatedCost / trip.budget) * 100)}%` }} /></div><strong>{formatRupees(trip.budget - estimatedCost)} room left</strong></article></section>{!isPublic && <section className="share-options"><article className="ink-card"><div className="option-icon teal-icon"><Copy size={20} /></div><div><span className="eyebrow">Public template</span><h3>Let someone make it their own.</h3><p>Visitors can copy this itinerary into a fresh trip and remix it for themselves.</p></div><button className="outlined-action" onClick={() => setLocation(`/shared/${trip.id}`)}>Preview public trip</button></article><article className="ink-card"><div className="option-icon coral-icon"><UserRound size={20} /></div><div><span className="eyebrow">Travel circle</span><h3>Share the rough cut, too.</h3><p>Return to the builder if the route still needs one conversation.</p></div><button className="outlined-action" onClick={() => setLocation(`/trips/${trip.id}/itinerary`)}>Back to edit</button></article></section>}</div>;
+  return <PublicSharePage />;
 }
 
 export function ProfileSettingsPage() {

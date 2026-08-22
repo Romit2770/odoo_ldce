@@ -17,6 +17,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 type PlannerContextValue = {
   trip: Trip;
+  setTrip: (trip: Trip) => void;
   buffetIncluded: boolean;
   estimatedCost: number;
   addActivity: (stopId: string, dayId: string, idea: ActivityIdea, time?: string) => void;
@@ -93,6 +94,7 @@ export function TripPlannerProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<PlannerContextValue>(() => ({
     trip,
+    setTrip,
     buffetIncluded,
     estimatedCost,
     toggleBuffet: () => {

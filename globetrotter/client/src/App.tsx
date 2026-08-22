@@ -31,6 +31,7 @@ import { LoginPage } from "./pages/auth/LoginPage";
 import { RegisterPage } from "./pages/auth/RegisterPage";
 import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
 import { OnboardingPage } from "./pages/auth/OnboardingPage";
+import { PublicSharePage } from "@/components/trips/PublicSharePage";
 import { Redirect, Route, Switch } from "wouter";
 
 function ProtectedProductRoutes() {
@@ -105,6 +106,12 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/onboarding">
         {!isAuthenticated ? <Redirect to="/login" /> : <OnboardingPage />}
+      </Route>
+      <Route path="/share/:shareCode">
+        <PublicSharePage />
+      </Route>
+      <Route path="/share">
+        <PublicSharePage />
       </Route>
       <Route path="/admin/:rest*" component={AdminRoutes} />
       <Route path="/admin" component={AdminRoutes} />
